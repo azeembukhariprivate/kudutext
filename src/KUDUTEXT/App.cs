@@ -14,7 +14,7 @@ namespace Kudutext
         /// <summary>
         /// KUDUTEXT.exe                          open
         /// KUDUTEXT.exe file...                  open and add these videos or recordings to the list
-        /// KUDUTEXT.exe --self-test --model ggml-tiny.bin --samples folder-with-jfk.mp3   automated checks for the build
+        /// KUDUTEXT.exe --self-test --model ggml-tiny.bin --samples folder-with-jfk.mp3 --ffmpeg ffmpeg-essentials.zip   automated checks for the build
         /// </summary>
         [STAThread]
         public static int Main(string[] args)
@@ -27,7 +27,7 @@ namespace Kudutext
                     var i = Array.FindIndex(args, a => string.Equals(a, name, StringComparison.OrdinalIgnoreCase));
                     return i >= 0 && i + 1 < args.Length ? args[i + 1] : null;
                 }
-                return app.RunSelfTest(Value("--model"), Value("--samples"));
+                return app.RunSelfTest(Value("--model"), Value("--samples"), Value("--ffmpeg"));
             }
 
             // One copy at a time: two would share (and fight over) the same list.
@@ -64,14 +64,14 @@ namespace Kudutext
             return Run();
         }
 
-        public int RunSelfTest(string model, string samples)
+        public int RunSelfTest(string model, string samples, string ffmpeg)
         {
             var code = 1;
             Startup += (s, e) =>
             {
                 ShutdownMode = ShutdownMode.OnExplicitShutdown;
                 DispatcherUnhandledException += OnUnhandledException;
-                code = SelfTest.Run(model, samples);
+                code = SelfTest.Run(model, samples, ffmpeg);
                 Shutdown(code);
             };
             Run();

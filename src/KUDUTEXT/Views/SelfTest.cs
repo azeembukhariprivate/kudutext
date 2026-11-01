@@ -26,7 +26,7 @@ namespace Kudutext.Views
         private static StringBuilder _log;
         private static string _temp;
 
-        public static int Run(string modelFile, string samples)
+        public static int Run(string modelFile, string samples, string ffmpegZip)
         {
             Running = true;
             _log = new StringBuilder();
@@ -37,6 +37,8 @@ namespace Kudutext.Views
             var saved = (Settings.Model, Settings.Language, Settings.Translate, Settings.Formats, Settings.OutputFolder);
             JobList.Folder = Path.Combine(_temp, "data");
             SpeechModels.Folder = Path.Combine(_temp, "models");
+            var savedFfmpeg = Ffmpeg.Folder;
+            Ffmpeg.Folder = Path.Combine(_temp, "ffmpeg");
             Settings.Model = SpeechModels.Tiny.Id;
             Settings.Language = "auto";
             Settings.Translate = false;
@@ -60,20 +62,31 @@ namespace Kudutext.Views
                     Expect(modelFile != null && File.Exists(modelFile), "--model with the tiny speech model");
                     Expect(samples != null && File.Exists(Path.Combine(samples, "jfk.mp3")), "--samples with jfk.mp3");
                     Expect(SpeechModels.Sha1Of(modelFile) == SpeechModels.Tiny.Sha1, "the tiny model's checksum");
+                    Expect(ffmpegZip != null && File.Exists(ffmpegZip), "--ffmpeg with the FFmpeg download");
+                    Expect(Downloads.Sha256Of(ffmpegZip) == Ffmpeg.Package.Sha256, "the FFmpeg download's checksum");
                 });
-                if (Errors.Count > 0) return Finish(savedFolder, savedModels, saved);
+                if (Errors.Count > 0)
+                {
+                    Ffmpeg.Folder = savedFfmpeg;
+                    return Finish(savedFolder, savedModels, saved);
+                }
 
                 var mp3 = Path.Combine(_temp, "Ask not.mp3");
                 File.Copy(Path.Combine(samples, "jfk.mp3"), mp3);
                 Sound();
+                _ffmpegZip = File.ReadAllBytes(ffmpegZip);
                 Screens(mp3, File.ReadAllBytes(modelFile));
             }
             catch (Exception ex)
             {
                 Errors.Add("self-test: " + ex);
             }
+            Ffmpeg.Folder = savedFfmpeg;
+            FfmpegGetter.UrlOverride = null;
             return Finish(savedFolder, savedModels, saved);
         }
+
+        private static byte[] _ffmpegZip;
 
         private static int Finish(string folder, string models, (string Model, string Language, bool Translate, List<string> Formats, string OutputFolder) saved)
         {
@@ -343,6 +356,7 @@ namespace Kudutext.Views
                     Expect(kept.Select(k => k.State).SequenceEqual(main.Jobs.Select(k => k.State)), "with how each one went");
                     Expect(kept[0].Outputs.Count == 2 && kept[0].Heard == "en", "with their files and language");
                 });
+                Videos(main, server);
                 MainWindow.ModelUrlOverride = null;
             }
 
@@ -355,6 +369,8 @@ namespace Kudutext.Views
                 Show(About.Build(main));
                 var first = main.Jobs.FirstOrDefault(j => j.State == JobState.Done);
                 if (first != null) Show(main.OpenEditor(first, modal: false));
+                var video = main.Jobs.FirstOrDefault(j => j.State == JobState.Done && Ffmpeg.IsVideo(j.File));
+                if (video != null) Show(main.OpenVideo(video, modal: false));
                 ThemeManager.Apply(ThemeMode.Light);
                 Pump();
             });
@@ -371,6 +387,159 @@ namespace Kudutext.Views
                 main.SkipClosePrompt = true;
                 main.Close();
             });
+        }
+
+
+        // ================================================================== FFmpeg and videos
+
+        private static void Videos(MainWindow main, TestServer server)
+        {
+            server.Add("ffmpeg.zip", _ffmpegZip);
+            FfmpegGetter.UrlOverride = server.Url("ffmpeg.zip");
+
+            Step("Getting FFmpeg stops part way", () =>
+            {
+                Show(new SettingsWindow(main));
+                server.Drop(1, _ffmpegZip.Length / 3);
+                var get = FfmpegGetter.Get(null, CancellationToken.None);
+                Wait(() => get.IsCompleted, 120);
+                Expect(get.IsFaulted && get.Exception.InnerException is DownloadFailedException d && d.Message.Contains("part way"),
+                    "a note that it stopped part way, got " + get.Exception?.InnerException?.Message);
+                Expect(!Ffmpeg.IsReady(), "not kept yet");
+            });
+
+            Step("…and carries on", () =>
+            {
+                var get = FfmpegGetter.Get(null, CancellationToken.None);
+                Wait(() => get.IsCompleted, 300);
+                Expect(!get.IsFaulted, "got it, " + get.Exception?.InnerException?.Message);
+                Expect(Ffmpeg.IsReady(), "kept after its checksum matched");
+                Expect(server.RangesAsked.Any(r => r.StartsWith("bytes=" + _ffmpegZip.Length / 3)), "it asked for the rest only");
+                Expect(File.Exists(Path.Combine(Ffmpeg.Folder, "LICENSE.txt")), "its licence kept beside it");
+            });
+            if (!Ffmpeg.IsReady()) return;
+
+            var talk = Path.Combine(_temp, "Talk.mp4");
+            Job job = null;
+            Step("Turn a video's speech into text", () =>
+            {
+                // A test video: a plain picture with the recording as its sound.
+                var make = Ffmpeg.Run(Ffmpeg.ExePath, new[]
+                {
+                    "-hide_banner", "-nostdin", "-y", "-f", "lavfi", "-i", "color=c=0x335577:s=640x360:r=25", "-i", Path.Combine(_temp, "Ask not.mp3"),
+                    "-shortest", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", talk
+                }, _temp, null, CancellationToken.None);
+                Wait(() => make.IsCompleted, 120);
+                Expect(!make.IsFaulted && File.Exists(talk), "a test video made, " + make.Exception?.InnerException?.Message);
+                Expect(main.Add(new[] { talk }) == 1, "added");
+                job = main.Jobs.Last();
+                Wait(() => !main.IsBusy, 300);
+                Expect(job.State == JobState.Done, "done, got " + job.State + " " + job.Error);
+                Expect(Transcript.Load(JobList.TranscriptFile(job)).PlainText.IndexOf("country", StringComparison.OrdinalIgnoreCase) >= 0, "the words heard");
+            });
+            if (job?.State != JobState.Done) return;
+
+            Step("Read sound with FFmpeg", () =>
+            {
+                var wav = Path.Combine(_temp, "via-ffmpeg.wav");
+                var seconds = AudioReader.ViaFfmpeg(talk, wav, null, CancellationToken.None);
+                Expect(seconds > 10 && seconds < 12, "about 11 seconds, got " + seconds);
+            });
+
+            Step("Subtitles as a track", () =>
+            {
+                var w = main.OpenVideo(job, modal: false);
+                OffScreen(w);
+                w.Show();
+                Pump();
+                Screenshots.One(w, "Subtitles into the video");
+                var run = w.Start(VideoMode.Track, "normal");
+                Wait(() => run.IsCompleted, 300);
+                Expect(run.Result, "made, got: " + w.Note);
+                Expect(w.LastOutput == Path.Combine(_temp, "Talk (subtitles).mp4") && File.Exists(w.LastOutput), "saved beside the video, got " + w.LastOutput);
+                var info = Probe(w.LastOutput);
+                Expect(info.Contains("Subtitle: mov_text") && info.Contains("(eng)"), "a subtitle track marked English");
+                Expect(info.Contains("Video: h264"), "the picture kept");
+                Screenshots.One(w, "Subtitles added");
+                w.Close();
+            });
+
+            Step("Subtitles written into the picture", () =>
+            {
+                var w = main.OpenVideo(job, modal: false);
+                OffScreen(w);
+                w.Show();
+                var run = w.Start(VideoMode.Burn, "normal");
+                Wait(() => run.IsCompleted, 600);
+                Expect(run.Result, "made, got: " + w.Note);
+                Expect(w.LastOutput == Path.Combine(_temp, "Talk (subtitles in picture).mp4") && File.Exists(w.LastOutput), "saved, got " + w.LastOutput);
+                var info = Probe(w.LastOutput);
+                Expect(info.Contains("Video: h264") && !info.Contains("Subtitle:"), "one picture, no separate track");
+                // The words are in the picture: a frame differs from the original's at the same moment.
+                var before = Frame(talk, 3);
+                var after = Frame(w.LastOutput, 3);
+                var changed = before.Zip(after, (a, b) => Math.Abs(a - b) > 40 ? 1 : 0).Sum();
+                Note($"{changed} of {before.Length} points changed by the words");
+                Expect(changed > 30, "words drawn on the picture");
+                w.Close();
+            });
+
+            Step("Stopping a video part way leaves nothing behind", () =>
+            {
+                var w = main.OpenVideo(job, modal: false);
+                OffScreen(w);
+                w.Show();
+                var run = w.Start(VideoMode.Burn, "large");
+                Wait(() => w.IsRunning, 10);
+                w.Stop();
+                Wait(() => run.IsCompleted, 60);
+                Expect(!run.Result && w.Note.StartsWith("Stopped"), "stopped, got " + w.Note);
+                Expect(!Directory.EnumerateFiles(_temp, "*.unfinished.*").Any(), "no unfinished video left");
+                Expect(!File.Exists(Path.Combine(_temp, "Talk (subtitles in picture) (2).mp4")), "nothing saved");
+                Expect(!Directory.EnumerateFiles(Runner.WorkFolder, "*.srt").Any(), "no work files left");
+                w.SkipClosePrompt = true;
+                w.Close();
+            });
+        }
+
+        /// <summary>What FFmpeg says about a file (its streams).</summary>
+        private static string Probe(string file)
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo(Ffmpeg.ExePath, Args.Join(new[] { "-hide_banner", "-nostdin", "-i", file }))
+            {
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardError = true
+            };
+            using (var p = System.Diagnostics.Process.Start(psi))
+            {
+                var text = p.StandardError.ReadToEnd();
+                p.WaitForExit(30000);
+                return text;
+            }
+        }
+
+        /// <summary>A small grey picture of one moment of a video, as bytes.</summary>
+        private static byte[] Frame(string file, double seconds)
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo(Ffmpeg.ExePath, Args.Join(new[]
+            {
+                "-hide_banner", "-nostdin", "-v", "error", "-ss", seconds.ToString(System.Globalization.CultureInfo.InvariantCulture), "-i", file,
+                "-frames:v", "1", "-vf", "scale=160:90", "-pix_fmt", "gray", "-f", "rawvideo", "-"
+            }))
+            {
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true
+            };
+            using (var p = System.Diagnostics.Process.Start(psi))
+            using (var ms = new MemoryStream())
+            {
+                p.StandardOutput.BaseStream.CopyTo(ms);
+                p.WaitForExit(30000);
+                Expect(ms.Length == 160 * 90, "a picture from " + Path.GetFileName(file));
+                return ms.ToArray();
+            }
         }
 
         // ================================================================== helpers

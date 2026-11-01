@@ -1,7 +1,7 @@
 # KUDUTEXT
 
 Speech to text and subtitles on Windows, on the user's own PC (whisper.cpp): a list of videos and recordings done one
-after another, saved as .srt, .vtt and .txt.
+after another, saved as .srt, .vtt and .txt, checked and corrected, and put into the video.
 Part of the KUDU family of free, open-source (MIT) Windows apps by Azeem Bukhari.
 
 ## Working with Azeem (the owner)
@@ -32,7 +32,7 @@ Part of the KUDU family of free, open-source (MIT) Windows apps by Azeem Bukhari
 ```
 dotnet run --project tests/KUDUTEXT.Tests -c Release
 dotnet build src/KUDUTEXT/KUDUTEXT.csproj -c Release -o out/KUDUTEXT
-out\KUDUTEXT\KUDUTEXT.exe --self-test --model ggml-tiny.bin --samples <folder with jfk.mp3>   (Windows only; needs engine\)
+out\KUDUTEXT\KUDUTEXT.exe --self-test --model ggml-tiny.bin --samples <folder with jfk.mp3> --ffmpeg <ffmpeg zip>   (Windows only; needs engine\)
 ```
 
 ## Shared code (kudu-common)
@@ -67,13 +67,19 @@ Built in steps, reporting after each one and waiting for "go on":
    end and words; play a line from the original via `Views/LinePlayer.cs` (NAudio WaveOutEvent); split at the cursor,
    join with next, remove; find and replace all; times checked by `Core/TextEdits.cs` before saving; saving writes the
    kept text and the job's own files again via `Outputs.Rewrite`). Opened by "Check text" or a double-click on a row.
-3. Next: subtitles into the video through FFmpeg (downloaded on first use), then release 1.0.
+3. Done (1.0): subtitles into the video (`Views/VideoWindow.cs`: a track (`Ffmpeg.TrackArgs`: copied, mov_text in
+   MP4/MOV, SRT in MKV, others become MKV) or written into the picture (`Ffmpeg.BurnArgs`: the subtitles filter with
+   the SRT under a plain name in the work folder, libx264 + AAC MP4); saved as "name (subtitles).ext" / "name (subtitles
+   in picture).mp4" beside the video via an ".unfinished" file). FFmpeg (`Core/Ffmpeg.cs`) is Gyan's 9.0.2 essentials
+   build, pinned by URL, size and SHA-256, downloaded once into `%LocalAppData%\KUDUTEXT\FFmpeg` (only ffmpeg.exe and
+   its licence are kept); it also reads sound Windows can't (`AudioReader.ViaFfmpeg`). Settings can get or remove it.
 
-Versions below 1.0 are built and tested by CI but never released.
+Versions below 1.0 were built and tested by CI but never released.
 
 ## Notes
 
 - The speech engine is whisper.cpp 1.9.5 built from source in CI (pinned commit, all CPU variants, no OpenMP) with the
   Visual C++ runtime DLLs copied next to it; it isn't in git. The self-test gets the tiny model (SHA-1 checked) and
   whisper.cpp's `samples/jfk.mp3`.
-- Nothing about the user is sent anywhere. The internet is used only for the model download and the update check.
+- Nothing about the user is sent anywhere. The internet is used only for the model and FFmpeg downloads and the update check.
+- To move to a newer FFmpeg, change `Ffmpeg.Package` (version, URL, size, SHA-256) and the workflow's self-test download.

@@ -37,7 +37,30 @@ namespace Kudutext.Views
                                        || ex is EndOfStreamException || ex is NotSupportedException || ex is DllNotFoundException || ex is TypeInitializationException)
             {
                 TryDelete(wav);
-                throw new AudioException("No sound could be read from this file. It may have no sound, or be a kind Windows can't play.", ex);
+                // FFmpeg, when it's on this PC, reads many more kinds of file than Windows does.
+                if (Ffmpeg.IsReady()) return ViaFfmpeg(source, wav, progress, cancel);
+                throw new AudioException("No sound could be read from this file. It may have no sound, or be a kind Windows can't play "
+                                         + "(getting FFmpeg in Settings lets KUDUTEXT read more kinds of file).", ex);
+            }
+        }
+
+        /// <summary>Reads the sound with FFmpeg instead of Windows.</summary>
+        public static double ViaFfmpeg(string source, string wav, Action<int> progress, CancellationToken cancel)
+        {
+            try
+            {
+                Directory.CreateDirectory(Runner.WorkFolder);
+                Ffmpeg.Run(Ffmpeg.ExePath, Ffmpeg.SoundArgs(source, wav), Runner.WorkFolder, progress, cancel).GetAwaiter().GetResult();
+                using (var r = new WaveFileReader(wav))
+                {
+                    if (r.Length == 0) throw new InvalidDataException("no sound");
+                    return r.TotalTime.TotalSeconds;
+                }
+            }
+            catch (Exception ex) when (ex is FfmpegException || ex is InvalidDataException || ex is FormatException || ex is IOException)
+            {
+                TryDelete(wav);
+                throw new AudioException("No sound could be read from this file. It may have no sound, or be damaged.", ex);
             }
         }
 

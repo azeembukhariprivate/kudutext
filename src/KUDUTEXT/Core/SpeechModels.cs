@@ -70,44 +70,8 @@ namespace Kudutext.Core
             Directory.CreateDirectory(Folder);
             var file = PathOf(m);
             var part = file + ".part";
-            long have = File.Exists(part) ? new FileInfo(part).Length : 0;
-            if (have > m.Size) { File.Delete(part); have = 0; }
-            try
-            {
-                using (var request = new HttpRequestMessage(HttpMethod.Get, url ?? m.Url))
-                {
-                    if (have > 0) request.Headers.Range = new System.Net.Http.Headers.RangeHeaderValue(have, null);
-                    using (var response = await http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancel).ConfigureAwait(false))
-                    {
-                        if (have > 0 && response.StatusCode != System.Net.HttpStatusCode.PartialContent) have = 0; // the site sends it all again
-                        if (!response.IsSuccessStatusCode) throw new DownloadFailedException("The speech model couldn't be downloaded (the site said " + (int)response.StatusCode + ").");
-                        using (var input = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
-                        using (var output = new FileStream(part, have > 0 ? FileMode.Append : FileMode.Create, FileAccess.Write))
-                        {
-                            var buffer = new byte[81920];
-                            int n;
-                            var done = have;
-                            while ((n = await input.ReadAsync(buffer, 0, buffer.Length, cancel).ConfigureAwait(false)) > 0)
-                            {
-                                await output.WriteAsync(buffer, 0, n, cancel).ConfigureAwait(false);
-                                done += n;
-                                progress?.Invoke(done, m.Size);
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex) when (ex is HttpRequestException || ex is IOException || (ex is TaskCanceledException && !cancel.IsCancellationRequested))
-            {
-                throw new DownloadFailedException("The download of the speech model stopped part way. Check the internet connection; it carries on from where it stopped.");
-            }
-            if (!File.Exists(part) || new FileInfo(part).Length != m.Size)
-                throw new DownloadFailedException("The download of the speech model stopped part way. Check the internet connection; it carries on from where it stopped.");
-            if (!string.Equals(Sha1Of(part), m.Sha1, StringComparison.OrdinalIgnoreCase))
-            {
-                File.Delete(part);
-                throw new DownloadFailedException("The downloaded speech model didn't check out, so it wasn't kept. Please try again.");
-            }
+            await Downloads.Fetch(http, url ?? m.Url, part, m.Size, p => string.Equals(Sha1Of(p), m.Sha1, StringComparison.OrdinalIgnoreCase),
+                "the speech model", progress, cancel).ConfigureAwait(false);
             if (File.Exists(file)) File.Delete(file);
             File.Move(part, file);
             File.WriteAllText(file + ".ok", m.Sha1);

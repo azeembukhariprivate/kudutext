@@ -567,6 +567,132 @@ namespace Kudutext.Tests
             Equal(Path.Combine(dir, "other.txt"), made.Single(), "none before: made as for a new file");
         }
 
+
+        // ================================================================== FFmpeg
+
+        private static void TestFfmpegPackage()
+        {
+            Check(Ffmpeg.Package.Url.StartsWith("https://github.com/GyanD/codexffmpeg/releases/download/" + Ffmpeg.Package.Version + "/"), "a pinned address");
+            Check(Ffmpeg.Package.Sha256.Length == 64 && Ffmpeg.Package.Sha256.All(Uri.IsHexDigit), "a SHA-256 checksum");
+            Check(Ffmpeg.Package.Size > 50_000_000, "its size");
+        }
+
+        private static byte[] FakeFfmpegZip()
+        {
+            using (var ms = new MemoryStream())
+            {
+                using (var zip = new System.IO.Compression.ZipArchive(ms, System.IO.Compression.ZipArchiveMode.Create, true))
+                {
+                    void Add(string name, string text)
+                    {
+                        using (var w = new StreamWriter(zip.CreateEntry(name).Open())) w.Write(text);
+                    }
+                    Add("ffmpeg-9-essentials/bin/ffplay.exe", "not this");
+                    Add("ffmpeg-9-essentials/bin/ffmpeg.exe", "the tool");
+                    Add("ffmpeg-9-essentials/LICENSE", "GPL");
+                }
+                return ms.ToArray();
+            }
+        }
+
+        private static void TestFfmpegDownload()
+        {
+            var body = FakeFfmpegZip();
+            var package = new FfmpegPackage { Version = "test", Size = body.Length, Sha256 = string.Concat(SHA256.HashData(body).Select(b => b.ToString("x2"))) };
+            var saved = Ffmpeg.Folder;
+            Ffmpeg.Folder = Path.Combine(_root, "ffmpeg");
+            try
+            {
+                using (var server = new TestServer())
+                using (var http = new HttpClient())
+                {
+                    server.Add("ff.zip", body);
+                    server.Drop(1, body.Length / 2);
+                    Check(!Ffmpeg.IsReady(package), "not there before");
+                    try
+                    {
+                        Ffmpeg.Download(http, null, CancellationToken.None, server.Url("ff.zip"), package).GetAwaiter().GetResult();
+                        throw new Exception("expected a stop");
+                    }
+                    catch (DownloadFailedException ex)
+                    {
+                        Check(ex.Message.Contains("FFmpeg") && ex.Message.Contains("part way"), "a plain reason: " + ex.Message);
+                    }
+                    Ffmpeg.Download(http, null, CancellationToken.None, server.Url("ff.zip"), package).GetAwaiter().GetResult();
+                    Check(server.RangesAsked.Any(), "carried on");
+                    Check(Ffmpeg.IsReady(package), "ready");
+                    Equal("the tool", File.ReadAllText(Ffmpeg.ExePath), "ffmpeg.exe taken out of it");
+                    Equal("GPL", File.ReadAllText(Path.Combine(Ffmpeg.Folder, "LICENSE.txt")), "its licence too");
+                    Check(!File.Exists(Path.Combine(Ffmpeg.Folder, "ffmpeg.zip.part")), "the download removed");
+                    Check(!Ffmpeg.IsReady(), "not taken for the real one");
+                    Ffmpeg.Remove();
+                    Check(!Ffmpeg.IsReady(package) && !File.Exists(Ffmpeg.ExePath), "removed");
+
+                    var wrong = new FfmpegPackage { Version = "x", Size = body.Length, Sha256 = new string('0', 64) };
+                    try
+                    {
+                        Ffmpeg.Download(http, null, CancellationToken.None, server.Url("ff.zip"), wrong).GetAwaiter().GetResult();
+                        throw new Exception("expected a refusal");
+                    }
+                    catch (DownloadFailedException ex)
+                    {
+                        Check(ex.Message.Contains("didn't check out"), "a wrong checksum is refused: " + ex.Message);
+                    }
+                    Check(!File.Exists(Ffmpeg.ExePath), "nothing kept");
+                }
+            }
+            finally
+            {
+                Ffmpeg.Folder = saved;
+            }
+        }
+
+        private static void TestVideoNames()
+        {
+            var dir = Path.Combine(_root, "v");
+            Equal(Path.Combine(dir, "talk (subtitles).mp4"), Ffmpeg.OutputFor(Path.Combine(dir, "talk.mp4"), VideoMode.Track, ""), "a track in an MP4");
+            Equal(Path.Combine(dir, "talk (subtitles).mov"), Ffmpeg.OutputFor(Path.Combine(dir, "talk.MOV"), VideoMode.Track, ""), "a track in a MOV");
+            Equal(Path.Combine(dir, "talk (subtitles).mkv"), Ffmpeg.OutputFor(Path.Combine(dir, "talk.mkv"), VideoMode.Track, ""), "a track in an MKV");
+            Equal(Path.Combine(dir, "talk (subtitles).mkv"), Ffmpeg.OutputFor(Path.Combine(dir, "talk.avi"), VideoMode.Track, ""), "AVI can't take one: MKV");
+            Equal(Path.Combine(_root, "out", "talk (subtitles in picture).mp4"), Ffmpeg.OutputFor(Path.Combine(dir, "talk.webm"), VideoMode.Burn, Path.Combine(_root, "out")), "written in: MP4, in the folder");
+            Check(Ffmpeg.IsVideo("a.MP4") && Ffmpeg.IsVideo("b.mkv") && !Ffmpeg.IsVideo("c.mp3") && !Ffmpeg.IsVideo("d.wav") && !Ffmpeg.IsVideo(null), "which files are videos");
+            Check(Ffmpeg.VideoKinds.All(JobList.Kinds.Contains), "every video kind can be added");
+        }
+
+        private static void TestFfmpegArguments()
+        {
+            var track = Ffmpeg.TrackArgs("v/talk.mp4", "w/s.srt", "v/talk (subtitles).mp4", "ml");
+            Equal("-hide_banner|-nostdin|-y|-i|v/talk.mp4|-i|w/s.srt|-map|0:v|-map|0:a?|-map|1:0|-c:v|copy|-c:a|copy|-c:s|mov_text|-disposition:s:0|default|-metadata:s:s:0|language=mal|-movflags|+faststart|v/talk (subtitles).mp4",
+                string.Join("|", track), "a track: copied as it is, mov_text in MP4, the language");
+            var mkv = Ffmpeg.TrackArgs("a.mkv", "s.srt", "a (subtitles).mkv", "xx");
+            Check(mkv[mkv.IndexOf("-c:s") + 1] == "srt" && !mkv.Contains("-movflags") && !mkv.Any(a => a.StartsWith("language=")), "MKV: SRT, no unknown language");
+            var burn = Ffmpeg.BurnArgs("a.webm", "job-subtitles.srt", "a (subtitles in picture).mp4", "large");
+            Equal("subtitles=job-subtitles.srt:force_style='FontSize=28,Outline=2,Shadow=1,MarginV=24'", burn[burn.IndexOf("-vf") + 1], "the subtitle drawer, with the size");
+            Check(burn.Contains("libx264") && burn.Contains("aac") && burn.Last() == "a (subtitles in picture).mp4", "made again as MP4");
+            try
+            {
+                Ffmpeg.BurnArgs("a.mp4", @"C:\w\s.srt", "o.mp4", "normal");
+                throw new Exception("expected a refusal");
+            }
+            catch (ArgumentException) { }
+            var sound = Ffmpeg.SoundArgs("in.webm", "out.wav");
+            Check(string.Join(" ", sound).EndsWith("-i in.webm -vn -sn -ac 1 -ar 16000 -c:a pcm_s16le -f wav out.wav"), "sound: 16 kHz mono WAV");
+            Equal(16, Ffmpeg.FontSize("small"), "small");
+            Equal(21, Ffmpeg.FontSize("normal"), "normal");
+            Equal("eng", Ffmpeg.LanguageCode3("en"), "English");
+            Equal(null, Ffmpeg.LanguageCode3(null), "none");
+        }
+
+        private static void TestReadFfmpegLines()
+        {
+            Equal(62.5, Ffmpeg.Duration("  Duration: 00:01:02.50, start: 0.000000, bitrate: 128 kb/s"), "the length");
+            Equal(3723.0, Ffmpeg.Duration("Duration: 01:02:03.00,"), "an hour");
+            Equal(-1.0, Ffmpeg.Duration("Duration: N/A, bitrate: N/A"), "no length");
+            Equal(12.34, Ffmpeg.Position("frame=  308 fps=0.0 q=-1.0 size=    1024kB time=00:00:12.34 bitrate= 680.1kbits/s speed=24.6x"), "how far");
+            Equal(-1.0, Ffmpeg.Position("frame=  1 time=N/A bitrate=N/A"), "not yet");
+            Equal(-1.0, Ffmpeg.Position(null), "nothing");
+        }
+
         // ================================================================== helpers
 
         private static void Check(bool condition, string what)

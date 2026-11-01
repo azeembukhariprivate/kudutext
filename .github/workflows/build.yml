@@ -118,13 +118,30 @@ jobs:
           $sha = (Get-FileHash -Algorithm SHA1 test-model/ggml-tiny.bin).Hash.ToLower()
           if ($sha -ne "bd577a113a864445d4c299885e0cb97d4ba92b5f") { Write-Host "Wrong checksum: $sha"; Remove-Item test-model -Recurse; exit 1 }
 
-      - name: Self-test the app (reading sound, the model download, real speech to text, the files it writes, every screen, both themes)
+      - name: FFmpeg from the cache (for the self-test only)
+        id: ffmpeg
+        uses: actions/cache@v5
+        with:
+          path: test-ffmpeg
+          key: ffmpeg-9.0.2-essentials-60f4672
+
+      - name: Download FFmpeg (for the self-test only; the app downloads it the first time it's needed)
+        if: steps.ffmpeg.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force test-ffmpeg | Out-Null
+          Invoke-WebRequest https://github.com/GyanD/codexffmpeg/releases/download/9.0.2/ffmpeg-9.0.2-essentials_build.zip -OutFile test-ffmpeg/ffmpeg.zip
+          $sha = (Get-FileHash -Algorithm SHA256 test-ffmpeg/ffmpeg.zip).Hash.ToLower()
+          if ($sha -ne "60f467265b1e312373dbcd92200c2618a74850f98d3d078e94296bb3fa2047ba") { Write-Host "Wrong checksum: $sha"; Remove-Item test-ffmpeg -Recurse; exit 1 }
+
+      - name: Self-test the app (reading sound, downloads, real speech to text, its files, checking the text, subtitles into a video, every screen)
         shell: pwsh
         timeout-minutes: 20
         run: |
           $model = (Resolve-Path test-model/ggml-tiny.bin).Path
           $samples = (Resolve-Path engine-build/samples).Path
-          $p = Start-Process -FilePath out/KUDUTEXT/KUDUTEXT.exe -ArgumentList '--self-test', '--model', "`"$model`"", '--samples', "`"$samples`"" -PassThru
+          $ffmpeg = (Resolve-Path test-ffmpeg/ffmpeg.zip).Path
+          $p = Start-Process -FilePath out/KUDUTEXT/KUDUTEXT.exe -ArgumentList '--self-test', '--model', "`"$model`"", '--samples', "`"$samples`"", '--ffmpeg', "`"$ffmpeg`"" -PassThru
           if (-not $p.WaitForExit(1080000)) { $p.Kill(); Write-Host "Self-test timed out"; exit 1 }
           Get-Content out/KUDUTEXT/self-test.log -ErrorAction SilentlyContinue
           Remove-Item out/KUDUTEXT/self-test.log -ErrorAction SilentlyContinue

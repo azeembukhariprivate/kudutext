@@ -383,6 +383,19 @@ namespace Kudutext.Views
             return editor;
         }
 
+        /// <summary>Opens the window to put a finished video's subtitles into it.</summary>
+        internal VideoWindow OpenVideo(Job job, bool modal = true)
+        {
+            if (job.State != JobState.Done || !File.Exists(job.File))
+            {
+                if (job.State == JobState.Done) Dialogs.Info(this, "The video isn't there any more.");
+                return null;
+            }
+            var window = new VideoWindow(this, job);
+            if (modal) window.ShowDialog();
+            return window;
+        }
+
         internal void StopOne(Job job)
         {
             if (job.State == JobState.Working) _jobCancel?.Cancel();
@@ -584,6 +597,7 @@ namespace Kudutext.Views
         private readonly ContentControl _chip = new ContentControl { Margin = new Thickness(14, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center, Focusable = false };
         private readonly Button _show;
         private readonly Button _check;
+        private readonly Button _video;
         private readonly Button _retry;
         private readonly Button _stop;
         private readonly Button _remove;
@@ -594,6 +608,8 @@ namespace Kudutext.Views
             _owner = owner;
             _check = Ui.Small(Ui.Button("Check text", "IconEdit", "SecondaryButton", (s, e) => _owner.OpenEditor(_job)));
             _check.ToolTip = "Read through the text, correct it and save again";
+            _video = Ui.Small(Ui.Button("Into video", "IconImport", "SecondaryButton", (s, e) => _owner.OpenVideo(_job))).Margin(6, 0, 0, 0);
+            _video.ToolTip = "Put the subtitles into the video";
             _show = Ui.Small(Ui.Button("Show files", "IconFolder", "SecondaryButton", (s, e) => ShowFiles())).Margin(6, 0, 0, 0);
             _retry = Ui.Small(Ui.Button("Try again", "IconRefresh", "SecondaryButton", (s, e) => _owner.Retry(_job)));
             _stop = Ui.Small(Ui.Button("Stop", "IconStop", "SecondaryButton", (s, e) => _owner.StopOne(_job)));
@@ -607,7 +623,7 @@ namespace Kudutext.Views
             grid.Children.Add(text.At(0, 1));
             grid.Children.Add(_bar.At(0, 2));
             grid.Children.Add(_chip.At(0, 3));
-            var actions = Ui.Row(_check, _show, _retry, _stop, _remove.Margin(6, 0, 0, 0));
+            var actions = Ui.Row(_check, _video, _show, _retry, _stop, _remove.Margin(6, 0, 0, 0));
             actions.Margin = new Thickness(14, 0, 0, 0);
             grid.Children.Add(actions.At(0, 4));
             Element = new Border { Child = grid, Padding = new Thickness(16, 10, 10, 10), BorderThickness = new Thickness(0, 0, 0, 1) }.Res(Border.BorderBrushProperty, "BorderBrush");
@@ -663,6 +679,7 @@ namespace Kudutext.Views
             }
             _show.Visibility = _job.State == JobState.Done && (_job.Outputs?.Count ?? 0) > 0 ? Visibility.Visible : Visibility.Collapsed;
             _check.Visibility = _job.State == JobState.Done && File.Exists(JobList.TranscriptFile(_job)) ? Visibility.Visible : Visibility.Collapsed;
+            _video.Visibility = _check.Visibility == Visibility.Visible && _job.Lines > 0 && Ffmpeg.IsVideo(_job.File) ? Visibility.Visible : Visibility.Collapsed;
             _retry.Visibility = _job.State == JobState.Failed || _job.State == JobState.Cancelled ? Visibility.Visible : Visibility.Collapsed;
             _stop.Visibility = _job.State == JobState.Working ? Visibility.Visible : Visibility.Collapsed;
             _remove.Visibility = _job.State == JobState.Working ? Visibility.Collapsed : Visibility.Visible;

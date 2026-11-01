@@ -12,6 +12,8 @@ namespace Kudutext.Views
     public sealed class SettingsWindow : Window
     {
         private readonly StackPanel _models = new StackPanel();
+        private readonly StackPanel _ffmpeg = new StackPanel();
+        private System.Threading.CancellationTokenSource _getting;
 
         public SettingsWindow(Window owner)
         {
@@ -50,6 +52,12 @@ namespace Kudutext.Views
             }).Margin(0, 6, 0, 0));
             RefreshModels();
 
+            root.Children.Add(Ui.Heading("FFmpeg", 14).Margin(0, 16, 0, 4));
+            root.Children.Add(Ui.Subtle("A free video tool, used to put subtitles into videos and to read kinds of file Windows can't. It's downloaded once, the first time it's needed.", 12)
+                .Margin(0, 0, 0, 6));
+            root.Children.Add(_ffmpeg);
+            RefreshFfmpeg();
+
             root.Children.Add(Ui.Heading("Updates", 14).Margin(0, 16, 0, 4));
             var updates = new CheckBox { Content = "Check for a new KUDUTEXT version when it starts", IsChecked = Settings.CheckForUpdates };
             updates.Click += (s, e) => Settings.CheckForUpdates = updates.IsChecked == true;
@@ -65,6 +73,62 @@ namespace Kudutext.Views
             bottom.Children.Add(close.At(0, 1));
             root.Children.Add(bottom.Margin(0, 14, 0, 0));
             Content = root;
+            Closed += (s, e) => _getting?.Cancel();
+        }
+
+        private void RefreshFfmpeg()
+        {
+            _ffmpeg.Children.Clear();
+            var row = Ui.Columns(Ui.Star(), Ui.Auto);
+            var ready = Ffmpeg.IsReady();
+            var status = Ui.Subtle(ready ? $"FFmpeg {Ffmpeg.Package.Version} is on this PC." : $"Not downloaded yet ({Format.Size(Ffmpeg.Package.Size)}).", 12.5, true);
+            row.Children.Add(status.At(0, 0));
+            if (ready)
+            {
+                row.Children.Add(Ui.Link("Remove", (s, e) =>
+                {
+                    try { Ffmpeg.Remove(); }
+                    catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+                    {
+                        Dialogs.Error(this, "It couldn't be removed now (it may be in use). Try again when nothing is being done.");
+                    }
+                    RefreshFfmpeg();
+                }).At(0, 1));
+            }
+            else
+            {
+                Button get = null;
+                get = Ui.Small(Ui.Button("Get it now", "IconImport", "SecondaryButton", async (s, e) =>
+                {
+                    if (_getting != null)
+                    {
+                        _getting.Cancel();
+                        return;
+                    }
+                    _getting = new System.Threading.CancellationTokenSource();
+                    get.Content = "Stop";
+                    try
+                    {
+                        await FfmpegGetter.Get((done, total) => Dispatcher.BeginInvoke(new Action(() => status.Text = $"Getting FFmpeg: {Format.Size(done)} of {Format.Size(total)}")), _getting.Token);
+                        RefreshFfmpeg();
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        RefreshFfmpeg();
+                    }
+                    catch (Exception ex) when (ex is DownloadFailedException || ex is IOException || ex is UnauthorizedAccessException)
+                    {
+                        RefreshFfmpeg();
+                        Dialogs.Error(this, ex.Message);
+                    }
+                    finally
+                    {
+                        _getting = null;
+                    }
+                }));
+                row.Children.Add(get.At(0, 1));
+            }
+            _ffmpeg.Children.Add(row);
         }
 
         private void RefreshModels()
@@ -123,11 +187,12 @@ namespace Kudutext.Views
             Row("Speech engine", Ui.Text("whisper.cpp (MIT licence)", 12.5));
             Row("Speech models", Ui.Text("Whisper models by OpenAI (MIT licence), downloaded from Hugging Face the first time", 12.5, wrap: true));
             Row("Reading sound", Ui.Text("NAudio (MIT licence) and Windows' own Media Foundation", 12.5, wrap: true));
+            Row("Videos", Ui.Text("FFmpeg (GPL licence), downloaded the first time it's needed", 12.5, wrap: true));
             Row("Third-party", Ui.Link("Third-party notices", (s, e) => OpenLocal("THIRD-PARTY-NOTICES.txt")));
             rows.Children.Add(Ui.Divider());
 
             var content = Ui.Column(header, rows,
-                Ui.Subtle("KUDUTEXT works on your computer only. Your videos and recordings never leave it: the internet is used only to download a speech model once, and to check for a new version.", 11.5)
+                Ui.Subtle("KUDUTEXT works on your computer only. Your videos and recordings never leave it: the internet is used only to download a speech model and FFmpeg once, and to check for a new version.", 11.5)
                     .Margin(0, 14, 0, 0));
 
             Window window = null;

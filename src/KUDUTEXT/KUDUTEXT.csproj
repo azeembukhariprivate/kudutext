@@ -12,7 +12,7 @@
     <Prefer32Bit>false</Prefer32Bit>
     <StartupObject>Kudutext.Program</StartupObject>
 
-    <Version>0.2.0</Version>
+    <Version>0.3.0</Version>
     <Product>KUDUTEXT</Product>
     <Company>Azeem Bukhari</Company>
     <Authors>Azeem Bukhari</Authors>
@@ -43,6 +43,8 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Net.Http" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Drawing" />

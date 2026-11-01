@@ -12,8 +12,6 @@
   <sub>The installer for Windows 10 and 11, always the latest version · <a href="https://github.com/azeembukhariprivate/kudutext/releases/latest">portable zip and what's new</a></sub>
 </p>
 
-> KUDUTEXT is being built step by step. The first published version will be 1.0.
-
 ---
 
 ## Features
@@ -24,10 +22,9 @@
 - **Around 100 languages**, found by itself or chosen by you, and it can **write the text in English** from speech in any language.
 - **Private**: everything happens on your PC. Your videos and recordings never leave it, and after the speech model is downloaded it works without the internet.
 - **Check and correct the text**: go through it line by line with its times, play any line to hear it, fix words or times, split or join lines, and replace a word everywhere at once (handy for names). Saving writes the subtitle and text files again.
+- **Subtitles into the video**: add them as a subtitle track players can turn on and off (quick, the picture isn't changed), or write them into the picture so they always show, on any player, phone or website (small, normal or large words). The new video is saved beside the original. This uses FFmpeg, a free video tool downloaded once (110 MB), the first time.
 - **Never replaces your files**: if a `talk.srt` that KUDUTEXT didn't make is already there, the new one is saved as `talk (2).srt`.
 - Light and dark themes, following Windows.
-
-Coming next: putting the subtitles into the video itself.
 
 ## Download
 
@@ -42,7 +39,7 @@ You can also start it from a command line with files to add: `KUDUTEXT.exe talk.
 
 ## Privacy
 
-KUDUTEXT works on your computer only. It uses the internet for two things: downloading a speech model the first time it's needed (from Hugging Face, where whisper.cpp publishes them), and an optional check for a newer version on GitHub, which can be turned off in Settings. Your videos, recordings and their text never leave your PC.
+KUDUTEXT works on your computer only. It uses the internet for three things: downloading a speech model the first time it's needed (from Hugging Face, where whisper.cpp publishes them), downloading FFmpeg the first time a video needs it, and an optional check for a newer version on GitHub, which can be turned off in Settings. Each download is checked against a checksum before it's kept. Your videos, recordings and their text never leave your PC.
 
 ## Build from source
 
@@ -55,7 +52,7 @@ dotnet build src/KUDUTEXT/KUDUTEXT.csproj -c Release -o out/KUDUTEXT
 
 The speech engine is [whisper.cpp](https://github.com/ggml-org/whisper.cpp) 1.9.5, built from its source code by the GitHub Actions workflow (`.github/workflows/build.yml` shows the exact steps) and placed in an `engine` folder next to `KUDUTEXT.exe`.
 
-The tests check the subtitle and text files, reading the speech engine's answers, the list of files, the speech model download (carrying on after it stops part way, refusing a file whose checksum is wrong), never replacing other files, and each step of turning a file into text. `KUDUTEXT.exe --self-test --model ggml-tiny.bin --samples <folder with jfk.mp3>` drives the real app on Windows: it reads sound from a WAV and an MP3, downloads a speech model from a small test server (stopping part way and carrying on), turns a real recording into text with the real speech engine, writes all three kinds of file, corrects the text (replacing words, splitting, joining and removing lines, catching a wrong time) and saves it again, stops a file part way, refuses a broken file, and shows every window in both themes; it writes `self-test.log` and exits. To build the installer, install [Inno Setup 6](https://jrsoftware.org/isinfo.php) and compile `installer/KUDUTEXT.iss`.
+The tests check the subtitle and text files, reading the speech engine's answers, the list of files, the speech model download (carrying on after it stops part way, refusing a file whose checksum is wrong), never replacing other files, and each step of turning a file into text. `KUDUTEXT.exe --self-test --model ggml-tiny.bin --samples <folder with jfk.mp3> --ffmpeg <FFmpeg download>` drives the real app on Windows: it reads sound from a WAV and an MP3, downloads a speech model from a small test server (stopping part way and carrying on), turns a real recording into text with the real speech engine, writes all three kinds of file, corrects the text (replacing words, splitting, joining and removing lines, catching a wrong time) and saves it again, downloads FFmpeg (stopping part way and carrying on), makes a test video and puts its subtitles in as a track and written into the picture (checking a frame has the words), stops a video part way, stops a file part way, refuses a broken file, and shows every window in both themes; it writes `self-test.log` and exits. To build the installer, install [Inno Setup 6](https://jrsoftware.org/isinfo.php) and compile `installer/KUDUTEXT.iss`.
 
 ### Shared code
 
@@ -68,7 +65,7 @@ they match.
 
 1. Change `<Version>` in `src/KUDUTEXT/KUDUTEXT.csproj` (and `MyAppVersion` in `installer/KUDUTEXT.iss`).
 2. Commit and push to `main`.
-3. GitHub Actions tests and builds the app. When no release exists yet for that version, it creates the `v` tag and publishes the installer and portable zip on the Releases page. Pushes that keep the same version only build. Versions below 1.0 are built and tested but not published.
+3. GitHub Actions tests and builds the app. When no release exists yet for that version, it creates the `v` tag and publishes the installer and portable zip on the Releases page. Pushes that keep the same version only build.
 
 ## License
 

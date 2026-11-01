@@ -93,3 +93,15 @@ msvcp140.dll, vcruntime140.dll and vcruntime140_1.dll in the engine folder, whic
 the speech engine needs. They are distributable files of Microsoft Visual Studio
 and are covered by its licence terms.
 https://learn.microsoft.com/cpp/windows/redistributing-visual-cpp-files
+
+5. FFmpeg 9.0.2
+---------------
+Not installed with KUDUTEXT: downloaded the first time a video needs it (to put
+subtitles into a video, or to read sound Windows can't), from Gyan's Windows
+builds that ffmpeg.org links to, and checked against the SHA-256 checksum
+written in KUDUTEXT. It's kept in %LocalAppData%\KUDUTEXT\FFmpeg with its own
+licence (LICENSE.txt) and runs as a separate program.
+This build is licensed under the GNU General Public License version 3.
+https://ffmpeg.org/
+https://www.gyan.dev/ffmpeg/builds/
+Source code: https://github.com/FFmpeg/FFmpeg/commit/946fcce07b

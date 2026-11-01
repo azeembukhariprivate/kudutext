@@ -2,7 +2,7 @@
 ; Installs for the current Windows user only, so installing never asks for administrator rights.
 
 #ifndef MyAppVersion
-  #define MyAppVersion "0.2.0"
+  #define MyAppVersion "0.3.0"
 #endif
 #ifndef SourceDir
   #define SourceDir "..\out\KUDUTEXT"
@@ -60,14 +60,14 @@ Filename: "{app}\{#MyAppExe}"; Description: "Open KUDUTEXT now"; Flags: nowait p
 Root: HKCU; Subkey: "Software\KUDUTEXT"; Flags: uninsdeletekey dontcreatekey
 
 [Code]
-{ The speech models (up to 1.5 GB each) and the list of files are only removed when the person says so.
+{ The speech models (up to 1.5 GB each), FFmpeg and the list of files are only removed when the person says so.
   The subtitle and text files made next to their videos are never touched. }
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin
   if CurUninstallStep = usPostUninstall then
     if DirExists(ExpandConstant('{localappdata}\KUDUTEXT')) then
-      if SuppressibleMsgBox('Also remove the downloaded speech models and the list of files from this PC?' + #13#10#13#10 +
-        'Your subtitle and text files are kept either way. Choose No to keep the models for if you install KUDUTEXT again.',
+      if SuppressibleMsgBox('Also remove the downloaded speech models, FFmpeg and the list of files from this PC?' + #13#10#13#10 +
+        'Your subtitle and text files are kept either way. Choose No to keep them for if you install KUDUTEXT again.',
         mbConfirmation, MB_YESNO or MB_DEFBUTTON2, IDNO) = IDYES then
         DelTree(ExpandConstant('{localappdata}\KUDUTEXT'), True, True, True);
 end;
