@@ -50,6 +50,7 @@ namespace Kudutext.Views
         private bool _busy;
         private bool _stopAll;
         private bool _closing;
+        private bool _showingChoices;
 
         /// <summary>For the self-test: where the speech model is downloaded from instead of the usual address.</summary>
         public static string ModelUrlOverride { get; set; }
@@ -194,6 +195,7 @@ namespace Kudutext.Views
                 var chip = new RadioButton { Content = m.Name, GroupName = "model", ToolTip = m.About + " · " + Format.Size(m.Size) }.Styled("ChipRadio");
                 chip.Checked += (s, e) =>
                 {
+                    if (_showingChoices) return; // only a click changes the choice
                     Settings.Model = model.Id;
                     RefreshChoices();
                 };
@@ -266,8 +268,9 @@ namespace Kudutext.Views
         private void RefreshChoices()
         {
             var current = SpeechModels.Find(Settings.Model);
-            if (!SpeechModels.All.Contains(current)) current = SpeechModels.Default;
+            _showingChoices = true;
             foreach (var pair in _modelChips) pair.Value.IsChecked = pair.Key == current.Id;
+            _showingChoices = false;
             _modelNote.Text = current.About + " · " + (SpeechModels.IsReady(current) ? "ready on this PC" : Format.Size(current.Size) + " to download once, the first time");
             var folder = Settings.OutputFolder;
             _folderText.Text = string.IsNullOrEmpty(folder) ? "Next to each video or recording" : folder;
