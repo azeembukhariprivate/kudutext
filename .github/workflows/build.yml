@@ -1,0 +1,209 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+
+      - name: Work out the version
+        id: ver
+        shell: pwsh
+        run: |
+          $version = ([xml](Get-Content src/KUDUTEXT/KUDUTEXT.csproj)).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
+          if ("${{ github.ref_type }}" -eq "tag") { $version = "${{ github.ref_name }}".TrimStart('v', 'V') }
+          "version=$version" >> $env:GITHUB_OUTPUT
+          Write-Host "Version: $version"
+
+      - name: Is this a new version?
+        id: rel
+        shell: pwsh
+        run: |
+          # A push to main whose version has no tag yet gets a release of its own.
+          $new = "false"
+          # Versions below 1.0 are the app being built step by step: they're built and tested, never released.
+          if ("${{ steps.ver.outputs.version }}".StartsWith("0.")) { Write-Host "Version 0.x: not released." }
+          elseif ("${{ github.event_name }}" -eq "push" -and "${{ github.ref }}" -eq "refs/heads/main") {
+            git ls-remote --exit-code --tags origin "refs/tags/v${{ steps.ver.outputs.version }}" | Out-Null
+            if ($LASTEXITCODE -eq 2) { $new = "true" }
+            elseif ($LASTEXITCODE -ne 0) { Write-Host "Couldn't check the tags (exit code $LASTEXITCODE); no release this time." }
+          }
+          "new=$new" >> $env:GITHUB_OUTPUT
+          Write-Host "New release: $new"
+          $global:LASTEXITCODE = 0
+
+      - name: Shared code matches kudu-common
+        shell: pwsh
+        run: |
+          # The shared files come from https://github.com/azeembukhariprivate/kudu-common and mustn't be edited here.
+          $sha = (Select-String -Path .kudu-common -Pattern '^commit (\S+)').Matches[0].Groups[1].Value
+          git clone -q https://github.com/azeembukhariprivate/kudu-common "$env:RUNNER_TEMP/kudu-common"
+          git -C "$env:RUNNER_TEMP/kudu-common" checkout -q $sha
+          if ($LASTEXITCODE -ne 0) { Write-Host "kudu-common has no commit $sha"; exit 1 }
+          python "$env:RUNNER_TEMP/kudu-common/sync.py" --check .
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          git -C "$env:RUNNER_TEMP/kudu-common" diff --quiet $sha origin/main -- shared
+          if ($LASTEXITCODE -ne 0) { Write-Host "::warning::kudu-common has newer shared code than this app; run its sync.py." }
+          $global:LASTEXITCODE = 0
+
+      - name: Test the core logic
+        shell: pwsh
+        run: dotnet run --project tests/KUDUTEXT.Tests -c Release
+
+      - name: Build
+        shell: pwsh
+        run: dotnet build src/KUDUTEXT/KUDUTEXT.csproj -c Release "-p:Version=${{ steps.ver.outputs.version }}" -o out/KUDUTEXT
+
+      - name: Speech engine from the cache
+        id: engine
+        uses: actions/cache@v5
+        with:
+          path: engine-build
+          key: whisper-cpp-1.9.5-x64-cpu-dl-noopenmp-1
+
+      - name: Build the speech engine (whisper.cpp 1.9.5, from its source)
+        if: steps.engine.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          $src = "$env:RUNNER_TEMP/whisper.cpp"
+          git clone -q --depth 1 --branch v1.9.5 https://github.com/ggml-org/whisper.cpp $src
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          # The tag must still point at the commit it pointed at when KUDUTEXT was made.
+          if ((git -C $src rev-parse HEAD) -ne "d1be6fde11ac6e0407606b4e42fe72d34add8037") { Write-Host "Unexpected whisper.cpp commit"; exit 1 }
+          # Every kind of processor gets its fastest code (GGML_CPU_ALL_VARIANTS), as in whisper.cpp's own Windows build.
+          cmake -S $src -B "$env:RUNNER_TEMP/wb" -A x64 -DBUILD_SHARED_LIBS=ON -DGGML_NATIVE=OFF -DGGML_BACKEND_DL=ON -DGGML_CPU_ALL_VARIANTS=ON `
+            -DGGML_OPENMP=OFF -DWHISPER_SDL2=OFF -DWHISPER_BUILD_TESTS=OFF -DWHISPER_BUILD_SERVER=OFF
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          cmake --build "$env:RUNNER_TEMP/wb" --config Release -j 4
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          New-Item -ItemType Directory -Force engine-build/engine, engine-build/samples | Out-Null
+          Copy-Item "$env:RUNNER_TEMP/wb/bin/Release/whisper-cli.exe", "$env:RUNNER_TEMP/wb/bin/Release/*.dll" engine-build/engine/
+          # The Visual C++ runtime the engine needs, next to it (Microsoft's app-local way), so nothing else has to be installed.
+          $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
+          $crt = Get-ChildItem "$vs\VC\Redist\MSVC\*\x64\Microsoft.VC14*.CRT" -Directory | Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $crt) { Write-Host "No Visual C++ runtime found"; exit 1 }
+          Copy-Item "$($crt.FullName)\msvcp140.dll", "$($crt.FullName)\vcruntime140.dll", "$($crt.FullName)\vcruntime140_1.dll" engine-build/engine/
+          Copy-Item "$src/samples/jfk.mp3" engine-build/samples/
+          Get-ChildItem engine-build -Recurse | Select-Object FullName, Length | Format-Table -AutoSize
+
+      - name: Put the speech engine next to the app
+        shell: pwsh
+        run: Copy-Item -Recurse engine-build/engine out/KUDUTEXT/engine
+
+      - name: Smallest speech model from the cache (for the self-test only)
+        id: tiny
+        uses: actions/cache@v5
+        with:
+          path: test-model
+          key: whisper-ggml-tiny-bd577a1
+
+      - name: Download the smallest speech model (for the self-test only)
+        if: steps.tiny.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force test-model | Out-Null
+          Invoke-WebRequest https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin -OutFile test-model/ggml-tiny.bin
+          $sha = (Get-FileHash -Algorithm SHA1 test-model/ggml-tiny.bin).Hash.ToLower()
+          if ($sha -ne "bd577a113a864445d4c299885e0cb97d4ba92b5f") { Write-Host "Wrong checksum: $sha"; Remove-Item test-model -Recurse; exit 1 }
+
+      - name: Self-test the app (reading sound, the model download, real speech to text, the files it writes, every screen, both themes)
+        shell: pwsh
+        timeout-minutes: 20
+        run: |
+          $model = (Resolve-Path test-model/ggml-tiny.bin).Path
+          $samples = (Resolve-Path engine-build/samples).Path
+          $p = Start-Process -FilePath out/KUDUTEXT/KUDUTEXT.exe -ArgumentList '--self-test', '--model', "`"$model`"", '--samples', "`"$samples`"" -PassThru
+          if (-not $p.WaitForExit(1080000)) { $p.Kill(); Write-Host "Self-test timed out"; exit 1 }
+          Get-Content out/KUDUTEXT/self-test.log -ErrorAction SilentlyContinue
+          Remove-Item out/KUDUTEXT/self-test.log -ErrorAction SilentlyContinue
+          if ($p.ExitCode -ne 0) { Write-Host "Self-test failed with exit code $($p.ExitCode)"; exit 1 }
+
+      - name: Keep the screenshots the self-test took
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: KUDUTEXT-screenshots-${{ steps.ver.outputs.version }}
+          path: out/KUDUTEXT/screenshots/*.png
+          if-no-files-found: warn
+
+      - name: Leave the screenshots out of the app
+        if: always()
+        shell: pwsh
+        run: Remove-Item -Recurse -Force out/KUDUTEXT/screenshots -ErrorAction SilentlyContinue
+
+      - name: Show build output
+        shell: pwsh
+        run: Get-ChildItem -Recurse out/KUDUTEXT | Select-Object FullName, Length | Format-Table -AutoSize
+
+      - name: Make portable zip
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force artifacts | Out-Null
+          Compress-Archive -Path out/KUDUTEXT/* -DestinationPath "artifacts/KUDUTEXT-${{ steps.ver.outputs.version }}-portable.zip"
+
+      - name: Make installer
+        shell: pwsh
+        run: |
+          $iscc = Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            choco install innosetup -y --no-progress | Out-Null
+          }
+          & $iscc "/DMyAppVersion=${{ steps.ver.outputs.version }}" "/DSourceDir=$PWD\out\KUDUTEXT" "/O$PWD\artifacts" installer\KUDUTEXT.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Upload build files
+        uses: actions/upload-artifact@v6
+        with:
+          name: KUDUTEXT-${{ steps.ver.outputs.version }}
+          path: artifacts/*
+
+      - name: Add a copy of the installer without the version in its name
+        if: github.ref_type == 'tag' || steps.rel.outputs.new == 'true'
+        shell: pwsh
+        run: Copy-Item "artifacts/KUDUTEXT-${{ steps.ver.outputs.version }}-setup.exe" "artifacts/KUDUTEXT-setup.exe"
+
+      - name: Publish GitHub release
+        if: github.ref_type == 'tag' || steps.rel.outputs.new == 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "v${{ steps.ver.outputs.version }}"
+          $files = (Get-ChildItem artifacts/*).FullName
+          gh release view $tag 2>$null | Out-Null
+          if ($LASTEXITCODE -eq 0) { gh release upload $tag $files --clobber }
+          else { gh release create $tag $files --target "${{ github.sha }}" --title "KUDUTEXT ${{ steps.ver.outputs.version }}" --generate-notes }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Give the latest release a copy of the installer without the version in its name
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.rel.outputs.new != 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # The README's download button links to releases/latest/download/KUDUTEXT-setup.exe.
+          $json = gh release view --json tagName,assets 2>$null
+          if ($LASTEXITCODE -ne 0 -or -not $json) { Write-Host "No release yet."; $global:LASTEXITCODE = 0; exit 0 }
+          $latest = $json | ConvertFrom-Json
+          $names = @($latest.assets | ForEach-Object { $_.name })
+          if ($names -contains "KUDUTEXT-setup.exe") { Write-Host "$($latest.tagName) already has KUDUTEXT-setup.exe."; exit 0 }
+          $versioned = $names | Where-Object { $_ -like "KUDUTEXT-*-setup.exe" } | Select-Object -First 1
+          if (-not $versioned) { Write-Host "$($latest.tagName) has no installer."; exit 0 }
+          New-Item -ItemType Directory -Force latest | Out-Null
+          gh release download $latest.tagName --pattern $versioned --dir latest
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item "latest/$versioned" latest/KUDUTEXT-setup.exe
+          gh release upload $latest.tagName latest/KUDUTEXT-setup.exe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

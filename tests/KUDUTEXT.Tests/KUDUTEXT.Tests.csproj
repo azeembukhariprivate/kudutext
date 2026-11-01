@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Checks KUDUTEXT's core: subtitle and text files, reading the speech engine's answers, the list of files, the
+       speech model download (carrying on after a drop, refusing a wrong checksum), not replacing other files, and the
+       steps of turning a file into text. Runs on any OS with: dotnet run, project tests/KUDUTEXT.Tests -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);CA1416</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\src\KUDUTEXT\Core\*.cs" Exclude="..\..\src\KUDUTEXT\Core\ThemeManager.cs" LinkBase="Core" />
+  </ItemGroup>
+
+</Project>
