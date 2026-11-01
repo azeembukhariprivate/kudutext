@@ -23,10 +23,11 @@
 - **Three levels of accuracy**: *Fast*, *Good* (the usual choice) and *Best*. Each speech model is downloaded once, the first time it's used, and checked before it's kept.
 - **Around 100 languages**, found by itself or chosen by you, and it can **write the text in English** from speech in any language.
 - **Private**: everything happens on your PC. Your videos and recordings never leave it, and after the speech model is downloaded it works without the internet.
+- **Check and correct the text**: go through it line by line with its times, play any line to hear it, fix words or times, split or join lines, and replace a word everywhere at once (handy for names). Saving writes the subtitle and text files again.
 - **Never replaces your files**: if a `talk.srt` that KUDUTEXT didn't make is already there, the new one is saved as `talk (2).srt`.
 - Light and dark themes, following Windows.
 
-Coming next: checking and correcting the text before saving, and putting the subtitles into the video itself.
+Coming next: putting the subtitles into the video itself.
 
 ## Download
 
@@ -54,7 +55,7 @@ dotnet build src/KUDUTEXT/KUDUTEXT.csproj -c Release -o out/KUDUTEXT
 
 The speech engine is [whisper.cpp](https://github.com/ggml-org/whisper.cpp) 1.9.5, built from its source code by the GitHub Actions workflow (`.github/workflows/build.yml` shows the exact steps) and placed in an `engine` folder next to `KUDUTEXT.exe`.
 
-The tests check the subtitle and text files, reading the speech engine's answers, the list of files, the speech model download (carrying on after it stops part way, refusing a file whose checksum is wrong), never replacing other files, and each step of turning a file into text. `KUDUTEXT.exe --self-test --model ggml-tiny.bin --samples <folder with jfk.mp3>` drives the real app on Windows: it reads sound from a WAV and an MP3, downloads a speech model from a small test server (stopping part way and carrying on), turns a real recording into text with the real speech engine, writes all three kinds of file, stops a file part way, refuses a broken file, and shows every window in both themes; it writes `self-test.log` and exits. To build the installer, install [Inno Setup 6](https://jrsoftware.org/isinfo.php) and compile `installer/KUDUTEXT.iss`.
+The tests check the subtitle and text files, reading the speech engine's answers, the list of files, the speech model download (carrying on after it stops part way, refusing a file whose checksum is wrong), never replacing other files, and each step of turning a file into text. `KUDUTEXT.exe --self-test --model ggml-tiny.bin --samples <folder with jfk.mp3>` drives the real app on Windows: it reads sound from a WAV and an MP3, downloads a speech model from a small test server (stopping part way and carrying on), turns a real recording into text with the real speech engine, writes all three kinds of file, corrects the text (replacing words, splitting, joining and removing lines, catching a wrong time) and saves it again, stops a file part way, refuses a broken file, and shows every window in both themes; it writes `self-test.log` and exits. To build the installer, install [Inno Setup 6](https://jrsoftware.org/isinfo.php) and compile `installer/KUDUTEXT.iss`.
 
 ### Shared code
 

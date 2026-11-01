@@ -63,8 +63,11 @@ Built in steps, reporting after each one and waiting for "go on":
    (`Core/Whisper.cs` runs `engine\whisper-cli.exe`, JSON out, short paths for non-ASCII), `Core/Runner.cs` (one file:
    read, listen, keep the text in `Texts\{id}.json`, write files via `Core/Outputs.cs`, which never replaces a file
    it didn't make).
-2. Next: checking and correcting the text (an editor with the times), and saving again.
-3. Then: subtitles into the video through FFmpeg (downloaded on first use), then release 1.0.
+2. Done (0.2): checking and correcting the text (`Views/EditorWindow.cs`: a virtualised list of `LineRow`s with start,
+   end and words; play a line from the original via `Views/LinePlayer.cs` (NAudio WaveOutEvent); split at the cursor,
+   join with next, remove; find and replace all; times checked by `Core/TextEdits.cs` before saving; saving writes the
+   kept text and the job's own files again via `Outputs.Rewrite`). Opened by "Check text" or a double-click on a row.
+3. Next: subtitles into the video through FFmpeg (downloaded on first use), then release 1.0.
 
 Versions below 1.0 are built and tested by CI but never released.
 

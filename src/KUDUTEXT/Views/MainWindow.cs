@@ -363,6 +363,26 @@ namespace Kudutext.Views
             Pump();
         }
 
+        /// <summary>Opens the window to check and correct a finished file's text.</summary>
+        internal EditorWindow OpenEditor(Job job, bool modal = true)
+        {
+            if (job.State != JobState.Done) return null;
+            EditorWindow editor;
+            try { editor = new EditorWindow(this, job); }
+            catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException || ex is System.Runtime.Serialization.SerializationException)
+            {
+                Dialogs.Error(this, "The text for this file couldn't be read. Add the file again to turn it into text again.");
+                return null;
+            }
+            editor.Saved += () =>
+            {
+                Refresh(job);
+                JobList.Save(_jobs);
+            };
+            if (modal) editor.ShowDialog();
+            return editor;
+        }
+
         internal void StopOne(Job job)
         {
             if (job.State == JobState.Working) _jobCancel?.Cancel();
@@ -563,6 +583,7 @@ namespace Kudutext.Views
         private readonly ProgressBar _bar = new ProgressBar { Maximum = 100, Width = 150, Margin = new Thickness(14, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
         private readonly ContentControl _chip = new ContentControl { Margin = new Thickness(14, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center, Focusable = false };
         private readonly Button _show;
+        private readonly Button _check;
         private readonly Button _retry;
         private readonly Button _stop;
         private readonly Button _remove;
@@ -571,7 +592,9 @@ namespace Kudutext.Views
         {
             _job = job;
             _owner = owner;
-            _show = Ui.Small(Ui.Button("Show files", "IconFolder", "SecondaryButton", (s, e) => ShowFiles()));
+            _check = Ui.Small(Ui.Button("Check text", "IconEdit", "SecondaryButton", (s, e) => _owner.OpenEditor(_job)));
+            _check.ToolTip = "Read through the text, correct it and save again";
+            _show = Ui.Small(Ui.Button("Show files", "IconFolder", "SecondaryButton", (s, e) => ShowFiles())).Margin(6, 0, 0, 0);
             _retry = Ui.Small(Ui.Button("Try again", "IconRefresh", "SecondaryButton", (s, e) => _owner.Retry(_job)));
             _stop = Ui.Small(Ui.Button("Stop", "IconStop", "SecondaryButton", (s, e) => _owner.StopOne(_job)));
             _remove = Ui.Button(null, "IconClose", "GhostButton", (s, e) => _owner.Remove(_job)).Tip("Take it off the list");
@@ -584,13 +607,13 @@ namespace Kudutext.Views
             grid.Children.Add(text.At(0, 1));
             grid.Children.Add(_bar.At(0, 2));
             grid.Children.Add(_chip.At(0, 3));
-            var actions = Ui.Row(_show, _retry, _stop, _remove.Margin(6, 0, 0, 0));
+            var actions = Ui.Row(_check, _show, _retry, _stop, _remove.Margin(6, 0, 0, 0));
             actions.Margin = new Thickness(14, 0, 0, 0);
             grid.Children.Add(actions.At(0, 4));
             Element = new Border { Child = grid, Padding = new Thickness(16, 10, 10, 10), BorderThickness = new Thickness(0, 0, 0, 1) }.Res(Border.BorderBrushProperty, "BorderBrush");
             Element.MouseLeftButtonDown += (s, e) =>
             {
-                if (e.ClickCount == 2 && _job.State == JobState.Done) ShowFiles();
+                if (e.ClickCount == 2 && _job.State == JobState.Done) _owner.OpenEditor(_job);
             };
         }
 
@@ -639,6 +662,7 @@ namespace Kudutext.Views
                 default: _chip.Content = Ui.Chip("Waiting", Tone.Neutral); break;
             }
             _show.Visibility = _job.State == JobState.Done && (_job.Outputs?.Count ?? 0) > 0 ? Visibility.Visible : Visibility.Collapsed;
+            _check.Visibility = _job.State == JobState.Done && File.Exists(JobList.TranscriptFile(_job)) ? Visibility.Visible : Visibility.Collapsed;
             _retry.Visibility = _job.State == JobState.Failed || _job.State == JobState.Cancelled ? Visibility.Visible : Visibility.Collapsed;
             _stop.Visibility = _job.State == JobState.Working ? Visibility.Visible : Visibility.Collapsed;
             _remove.Visibility = _job.State == JobState.Working ? Visibility.Collapsed : Visibility.Visible;

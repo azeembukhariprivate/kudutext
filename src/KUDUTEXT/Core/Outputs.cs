@@ -28,6 +28,25 @@ namespace Kudutext.Core
             return written;
         }
 
+        /// <summary>
+        /// Writes the corrected text again into the files this job made before (each in its own kind, by its extension).
+        /// When there are none (they were never made), they're made as for a new file.
+        /// </summary>
+        public static List<string> Rewrite(Job job, Transcript t, IEnumerable<string> formats, string folder)
+        {
+            var ours = (job.Outputs ?? new List<string>())
+                .Where(p => SubtitleFiles.Known.Contains(Path.GetExtension(p).TrimStart('.').ToLowerInvariant())).ToList();
+            if (ours.Count == 0) return Write(job, t, formats, folder);
+            foreach (var path in ours)
+            {
+                var format = Path.GetExtension(path).TrimStart('.').ToLowerInvariant();
+                var dir = Path.GetDirectoryName(path);
+                if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
+                File.WriteAllText(path, SubtitleFiles.Write(t, format), format == "vtt" ? new UTF8Encoding(false) : new UTF8Encoding(true));
+            }
+            return ours;
+        }
+
         /// <summary>The path itself, or "name (2).ext", "name (3).ext"... when something else is already there.</summary>
         public static string FreeName(string path, ICollection<string> ours, string source)
         {

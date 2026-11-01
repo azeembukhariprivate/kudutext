@@ -490,6 +490,83 @@ namespace Kudutext.Tests
             Equal("en", job.Heard, "the text is in English");
         }
 
+
+        // ================================================================== checking and correcting
+
+        private static void TestReadTimes()
+        {
+            Equal(62500L, TextEdits.ParseTime("00:01:02.500"), "full, dot");
+            Equal(62500L, TextEdits.ParseTime("00:01:02,500"), "full, comma");
+            Equal(62500L, TextEdits.ParseTime(" 1:02.5 "), "short");
+            Equal(62500L, TextEdits.ParseTime("62.5"), "seconds");
+            Equal(3723000L, TextEdits.ParseTime("1:02:03"), "hours");
+            Equal(0L, TextEdits.ParseTime("0"), "zero");
+            foreach (var bad in new[] { "", "soon", "1:75", "1:60:00", "-3", "1:2:3:4", "1.2.3", "00:01:02.5000", null })
+                Equal((long?)null, TextEdits.ParseTime(bad), "not a time: " + bad);
+            Equal("00:01:02.500", TextEdits.ShowTime(62500), "shown");
+            Equal(62500L, TextEdits.ParseTime(TextEdits.ShowTime(62500)), "read back");
+        }
+
+        private static void TestSplitAndJoin()
+        {
+            Check(TextEdits.SplitText("ask not what your country", 7, out var a, out var b) && a == "ask not" && b == "what your country", "split at the cursor");
+            Check(!TextEdits.SplitText("ask not", 0, out _, out _), "nothing before the cursor");
+            Check(!TextEdits.SplitText("ask not ", 8, out _, out _), "nothing after the cursor");
+            Check(!TextEdits.SplitText("ask", 99, out _, out _), "past the end");
+            Equal(1000L + 3000, TextEdits.SplitTime(1000, 9000, 3, 5), "time shared by letters");
+            Equal(1000L, TextEdits.SplitTime(1000, 1000, 3, 5), "no time to share");
+            Equal("ask not what", TextEdits.JoinText(" ask not ", "what "), "joined with one space");
+            Equal("what", TextEdits.JoinText("", "what"), "an empty part");
+        }
+
+        private static void TestReplaceWords()
+        {
+            Equal("ask what your nation, nation", TextEdits.Replace("ask what your country, COUNTRY", "country", "nation", false, out var n), "every one, any case");
+            Equal(2, n, "counted");
+            Equal("Country and nation", TextEdits.Replace("Country and country", "country", "nation", true, out var m), "matching case");
+            Equal(1, m, "counted with case");
+            Equal("aaa", TextEdits.Replace("aaa", "", "b", false, out var z), "nothing to find");
+            Equal(0, z, "none");
+            Equal("bb", TextEdits.Replace("aaaa", "aa", "b", false, out _), "no overlaps");
+            Check(TextEdits.Contains("Your Country", "country", false) && !TextEdits.Contains("Your Country", "country", true), "finding");
+        }
+
+        private static void TestTimeProblems()
+        {
+            Equal(null, TextEdits.Problem("00:00:01.000", "00:00:02.000", 0), "fine");
+            Equal(null, TextEdits.Problem("1", "1", null), "an instant is fine");
+            Check(TextEdits.Problem("x", "1", null).StartsWith("The start isn't a time"), "a bad start");
+            Check(TextEdits.Problem("1", "y", null).StartsWith("The end isn't a time"), "a bad end");
+            Equal("It ends before it starts.", TextEdits.Problem("5", "1", null), "backwards");
+            Equal("It starts before the line above.", TextEdits.Problem("1", "2", 3000), "out of order");
+        }
+
+        private static void TestBuildLeavesOutEmptyLines()
+        {
+            var t = TextEdits.Build("en", new[] { (0L, 1000L, " one "), (1000L, 2000L, "  "), (2000L, 3000L, "three") });
+            Equal(2, t.Segments.Count, "the empty line left out");
+            Equal("one", t.Segments[0].Text, "trimmed");
+            Equal("en", t.Language, "language");
+        }
+
+        private static void TestRewriteOwnFiles()
+        {
+            var dir = Folder("rewrite");
+            var job = new Job { File = Path.Combine(dir, "talk.mp4") };
+            job.Outputs = Outputs.Write(job, Sample(), new[] { "srt", "vtt" }, "");
+            var t = Sample();
+            t.Segments[0].Text = "Corrected";
+            File.Delete(job.Outputs[1]); // a file the person removed comes back
+            var again = Outputs.Rewrite(job, t, new[] { "txt" }, "");
+            Check(again.SequenceEqual(job.Outputs), "the same files, not the current choice");
+            Check(File.ReadAllText(again[0]).Contains("Corrected") && File.ReadAllText(again[1]).Contains("Corrected"), "both corrected");
+            Check(!File.Exists(Path.Combine(dir, "talk.txt")), "no new kinds made");
+
+            var fresh = new Job { File = Path.Combine(dir, "other.mp4") };
+            var made = Outputs.Rewrite(fresh, t, new[] { "txt" }, "");
+            Equal(Path.Combine(dir, "other.txt"), made.Single(), "none before: made as for a new file");
+        }
+
         // ================================================================== helpers
 
         private static void Check(bool condition, string what)

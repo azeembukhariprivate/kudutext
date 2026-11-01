@@ -225,6 +225,97 @@ namespace Kudutext.Views
                     Expect(j.Outputs.Contains(Path.Combine(_temp, "Interview (2).srt")), "a new name, got " + string.Join(", ", j.Outputs));
                 });
 
+                EditorWindow editor = null;
+                Step("Check and correct the text", () =>
+                {
+                    editor = main.OpenEditor(job, modal: false);
+                    Expect(editor != null, "the window opens");
+                    OffScreen(editor);
+                    editor.Show();
+                    Pump();
+                    var t = Transcript.Load(JobList.TranscriptFile(job));
+                    Expect(editor.Rows.Count == t.Segments.Count && editor.Rows.Count > 0, $"every line ({t.Segments.Count}), got {editor.Rows.Count}");
+                    Expect(!editor.IsDirty, "nothing changed yet");
+                    Screenshots.One(editor, "Check the text");
+                    var replaced = editor.ReplaceAll("country", "nation");
+                    Expect(replaced == 2, "\"country\" replaced twice, got " + replaced);
+                    Expect(editor.Note.StartsWith("Replaced 2 times"), "a note saying so, got " + editor.Note);
+                    editor.Rows[0].Text = "Corrected: " + editor.Rows[0].Text;
+                    Expect(editor.IsDirty, "the changes noticed");
+                    Expect(editor.Save(), "saved");
+                    Expect(!editor.IsDirty, "nothing left to save");
+                    var srt = File.ReadAllText(Path.Combine(_temp, "Ask not.srt"));
+                    var txt = File.ReadAllText(Path.Combine(_temp, "Ask not.txt"));
+                    Expect(srt.Contains("Corrected: ") && srt.Contains("nation") && !srt.Contains("country"), "the subtitle file has the corrections");
+                    Expect(txt.Contains("Corrected: ") && txt.Contains("nation"), "the text file has the corrections");
+                    Expect(Transcript.Load(JobList.TranscriptFile(job)).PlainText.StartsWith("Corrected: "), "the kept text has them");
+                    Note(srt.Replace("\r\n", " | "));
+                });
+
+                if (editor != null)
+                {
+                    Step("Split, join and remove lines", () =>
+                    {
+                        var before = editor.Rows.Count;
+                        var text = editor.Rows[0].Text;
+                        var end = editor.Rows[0].EndMs;
+                        editor.Selected = 0;
+                        Expect(editor.Split(text.IndexOf(" my", StringComparison.Ordinal)), "split at a space");
+                        Expect(editor.Rows.Count == before + 1, "one more line");
+                        var cut = text.IndexOf(" my", StringComparison.Ordinal);
+                        Expect(editor.Rows[0].Text == text.Substring(0, cut).Trim() && editor.Rows[1].Text == text.Substring(cut).Trim(), "the two parts, got " + editor.Rows[0].Text + " | " + editor.Rows[1].Text);
+                        Expect(editor.Rows[0].EndMs == editor.Rows[1].StartMs && editor.Rows[1].EndMs == end, "the time shared between the two");
+                        Pump();
+                        Screenshots.One(editor, "A line split");
+                        editor.Selected = 0;
+                        Expect(editor.JoinWithNext(), "joined");
+                        Expect(editor.Rows.Count == before && editor.Rows[0].Text == text && editor.Rows[0].EndMs == end, "back as it was");
+                        editor.Selected = 0;
+                        Expect(editor.Split(text.IndexOf(" my", StringComparison.Ordinal)), "split again");
+                        editor.Selected = 1;
+                        Expect(editor.RemoveSelected(), "removed");
+                        Expect(editor.Rows.Count == before, "the same number of lines");
+                        Expect(editor.Save(), "saved");
+                        var srt = File.ReadAllText(Path.Combine(_temp, "Ask not.srt"));
+                        Expect(srt.Split(new[] { "-->" }, StringSplitOptions.None).Length - 1 == before, "the subtitle file has the lines");
+                        Expect(job.Lines == before, "the list shows the number of lines");
+                    });
+
+                    Step("A wrong time is caught before saving", () =>
+                    {
+                        var start = editor.Rows[0].Start;
+                        var end = editor.Rows[0].End;
+                        editor.Rows[0].End = "soon";
+                        Expect(editor.Rows[0].Problem != null && editor.Rows[0].Problem.Contains("isn't a time"), "a plain note on the line");
+                        editor.Rows[0].Start = "00:00:05.000";
+                        editor.Rows[0].End = "00:00:01.000";
+                        Expect(editor.Rows[0].Problem == "It ends before it starts.", "ends before it starts, got " + editor.Rows[0].Problem);
+                        Expect(!editor.Save(), "not saved");
+                        Expect(editor.Note.StartsWith("Line 1 needs a look"), "says which line, got " + editor.Note);
+                        Pump();
+                        Screenshots.One(editor, "A wrong time");
+                        editor.Rows[0].Start = start;
+                        editor.Rows[0].End = end;
+                        Expect(editor.Rows[0].Problem == null, "fine again");
+                        Expect(editor.Save(), "saved");
+                    });
+
+                    Step("Play a line", () =>
+                    {
+                        editor.Selected = 0;
+                        editor.PlaySelected();
+                        Pump();
+                        Expect(editor.IsPlaying || (editor.Note ?? "").StartsWith("The line can't be played"), "playing, or a plain reason");
+                        Note(editor.IsPlaying ? "playing the line" : editor.Note);
+                    });
+
+                    Step("Close the text window", () =>
+                    {
+                        editor.SkipClosePrompt = true;
+                        editor.Close();
+                    });
+                }
+
                 Step("Stop one", () =>
                 {
                     var tone = Tone("Long tone.wav", 240, 16000, 1);
@@ -262,6 +353,8 @@ namespace Kudutext.Views
                 Screenshots.All("Dark theme");
                 Show(new SettingsWindow(main));
                 Show(About.Build(main));
+                var first = main.Jobs.FirstOrDefault(j => j.State == JobState.Done);
+                if (first != null) Show(main.OpenEditor(first, modal: false));
                 ThemeManager.Apply(ThemeMode.Light);
                 Pump();
             });
