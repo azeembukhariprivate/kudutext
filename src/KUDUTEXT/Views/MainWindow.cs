@@ -502,25 +502,36 @@ namespace Kudutext.Views
             var started = DateTime.UtcNow;
             long startBytes = -1;
             var lastShown = DateTime.MinValue;
+            // Progress is shown a moment after it's reported. Once the download has ended, a late report mustn't
+            // write over what the banner says then (the reason it stopped).
+            var downloading = true;
             try
             {
                 ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
                 using (var http = new HttpClient { Timeout = Timeout.InfiniteTimeSpan })
                 {
                     http.DefaultRequestHeaders.UserAgent.ParseAdd(AppInfo.Name + "/" + AppInfo.VersionText);
-                    await SpeechModels.Download(http, model, (done, total) =>
+                    try
                     {
-                        if (startBytes < 0) startBytes = done;
-                        var now = DateTime.UtcNow;
-                        if ((now - lastShown).TotalMilliseconds < 200 && done < total) return;
-                        lastShown = now;
-                        var speed = (done - startBytes) / Math.Max(0.5, (now - started).TotalSeconds);
-                        Dispatcher.BeginInvoke(new Action(() =>
+                        await SpeechModels.Download(http, model, (done, total) =>
                         {
-                            _bannerBar.Value = total > 0 ? done * 1000.0 / total : 0;
-                            _bannerText.Text = $"{Format.Size(done)} of {Format.Size(total)} · {Format.Speed(speed)}. This happens once; after that it all works without the internet.";
-                        }));
-                    }, _downloadCancel.Token, ModelUrlOverride);
+                            if (startBytes < 0) startBytes = done;
+                            var now = DateTime.UtcNow;
+                            if ((now - lastShown).TotalMilliseconds < 200 && done < total) return;
+                            lastShown = now;
+                            var speed = (done - startBytes) / Math.Max(0.5, (now - started).TotalSeconds);
+                            Dispatcher.BeginInvoke(new Action(() =>
+                            {
+                                if (!downloading) return;
+                                _bannerBar.Value = total > 0 ? done * 1000.0 / total : 0;
+                                _bannerText.Text = $"{Format.Size(done)} of {Format.Size(total)} · {Format.Speed(speed)}. This happens once; after that it all works without the internet.";
+                            }));
+                        }, _downloadCancel.Token, ModelUrlOverride);
+                    }
+                    finally
+                    {
+                        downloading = false;
+                    }
                 }
                 HideBanner();
                 RefreshChoices();

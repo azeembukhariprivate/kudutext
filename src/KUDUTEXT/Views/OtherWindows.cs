@@ -107,9 +107,17 @@ namespace Kudutext.Views
                     }
                     _getting = new System.Threading.CancellationTokenSource();
                     get.Content = "Stop";
+                    var getting = true; // a late progress report mustn't write over what's shown once it has ended
                     try
                     {
-                        await FfmpegGetter.Get((done, total) => Dispatcher.BeginInvoke(new Action(() => status.Text = $"Getting FFmpeg: {Format.Size(done)} of {Format.Size(total)}")), _getting.Token);
+                        try
+                        {
+                            await FfmpegGetter.Get((done, total) => Dispatcher.BeginInvoke(new Action(() => { if (getting) status.Text = $"Getting FFmpeg: {Format.Size(done)} of {Format.Size(total)}"; })), _getting.Token);
+                        }
+                        finally
+                        {
+                            getting = false;
+                        }
                         RefreshFfmpeg();
                     }
                     catch (OperationCanceledException)

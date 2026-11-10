@@ -174,12 +174,21 @@ namespace Kudutext.Views
                 {
                     ShowNote("Getting FFmpeg, once…", 0);
                     var lastShown = DateTime.MinValue;
-                    await FfmpegGetter.Get((done, total) =>
+                    // A late progress report mustn't write over the note shown once the download has ended.
+                    var getting = true;
+                    try
                     {
-                        if ((DateTime.UtcNow - lastShown).TotalMilliseconds < 200 && done < total) return;
-                        lastShown = DateTime.UtcNow;
-                        Dispatcher.BeginInvoke(new Action(() => ShowNote($"Getting FFmpeg, once: {Format.Size(done)} of {Format.Size(total)}", total > 0 ? done * 100.0 / total : 0)));
-                    }, token);
+                        await FfmpegGetter.Get((done, total) =>
+                        {
+                            if ((DateTime.UtcNow - lastShown).TotalMilliseconds < 200 && done < total) return;
+                            lastShown = DateTime.UtcNow;
+                            Dispatcher.BeginInvoke(new Action(() => { if (getting) ShowNote($"Getting FFmpeg, once: {Format.Size(done)} of {Format.Size(total)}", total > 0 ? done * 100.0 / total : 0); }));
+                        }, token);
+                    }
+                    finally
+                    {
+                        getting = false;
+                    }
                 }
 
                 // The subtitles as they are now (after any corrections), in the work folder under a plain name.
@@ -202,8 +211,16 @@ namespace Kudutext.Views
                     : Ffmpeg.TrackArgs(_job.File, srt, temp, t.Language);
                 var verb = mode == VideoMode.Burn ? "Writing the subtitles into the picture" : "Adding the subtitles";
                 ShowNote(verb + "…", 0);
-                await Ffmpeg.Run(Ffmpeg.ExePath, args, Runner.WorkFolder,
-                    p => Dispatcher.BeginInvoke(new Action(() => ShowNote($"{verb}: {p}%", p))), token);
+                var making = true; // as above: no late "99%" over "Saved" or the reason it failed
+                try
+                {
+                    await Ffmpeg.Run(Ffmpeg.ExePath, args, Runner.WorkFolder,
+                        p => Dispatcher.BeginInvoke(new Action(() => { if (making) ShowNote($"{verb}: {p}%", p); })), token);
+                }
+                finally
+                {
+                    making = false;
+                }
                 token.ThrowIfCancellationRequested();
                 File.Move(temp, output);
                 temp = null;
