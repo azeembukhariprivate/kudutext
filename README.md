@@ -12,6 +12,10 @@
   <sub>The installer for Windows 10 and 11, always the latest version · <a href="https://github.com/azeembukhariprivate/kudutext/releases/latest">portable zip and what's new</a></sub>
 </p>
 
+<p align="center">
+  <img src="docs/screenshot-1.png" alt="KUDUTEXT with two recordings turned into text and subtitles" width="820">
+</p>
+
 ---
 
 ## Features
