@@ -62,6 +62,9 @@ namespace Kudutext.Tests
             }
         };
 
+        private static void TestOtherLanguages() => LangTests.Run();
+
+
         private static void TestSrt()
         {
             Equal("1\r\n00:00:00,000 --> 00:00:02,500\r\nAnd so my fellow Americans,\r\n\r\n" +

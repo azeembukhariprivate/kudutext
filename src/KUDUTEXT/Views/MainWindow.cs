@@ -318,7 +318,7 @@ namespace Kudutext.Views
             if (skipped > 0)
                 Dialogs.Info(this, skipped == 1 && added == 0
                     ? "That kind of file can't be turned into text. Choose a video or a recording (MP4, MKV, MOV, MP3, WAV, M4A and more)."
-                    : Format.Count(skipped, "file was", "files were") + " left out: only videos and recordings can be turned into text.");
+                    : Lang.T(skipped == 1 ? "1 file was left out: only videos and recordings can be turned into text." : "{0} files were left out: only videos and recordings can be turned into text.", skipped.ToString("N0")));
             JobList.Save(_jobs);
             UpdateBottom();
             if (added > 0)

@@ -41,6 +41,9 @@ namespace Kudutext.Views
             }
             root.Children.Add(themes);
 
+            root.Children.Add(Ui.Heading("Language", 14).Margin(0, 16, 0, 6));
+            root.Children.Add(LangUi.Picker());
+
             root.Children.Add(Ui.Heading("Speech models on this PC", 14).Margin(0, 16, 0, 4));
             root.Children.Add(Ui.Subtle("Each one is downloaded once, the first time it's used. Removing one frees its space; it's downloaded again if it's needed.", 12)
                 .Margin(0, 0, 0, 6));

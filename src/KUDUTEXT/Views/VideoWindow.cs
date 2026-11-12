@@ -140,7 +140,9 @@ namespace Kudutext.Views
         {
             _sizeRow.Visibility = Mode == VideoMode.Burn ? Visibility.Visible : Visibility.Collapsed;
             var target = Ffmpeg.OutputFor(_job.File, Mode, Settings.OutputFolder);
-            _where.Text = "Saved as \"" + Path.GetFileName(target) + "\" " + (string.IsNullOrEmpty(Settings.OutputFolder) ? "next to the video." : "in " + Settings.OutputFolder + ".");
+            _where.Text = string.IsNullOrEmpty(Settings.OutputFolder)
+                ? Lang.T("Saved as \"{0}\" next to the video.", Path.GetFileName(target))
+                : Lang.T("Saved as \"{0}\" in {1}.", Path.GetFileName(target), Settings.OutputFolder);
             _start.Visibility = IsRunning ? Visibility.Collapsed : Visibility.Visible;
             _stop.Visibility = IsRunning ? Visibility.Visible : Visibility.Collapsed;
             _track.IsEnabled = _burn.IsEnabled = !IsRunning;

@@ -83,3 +83,7 @@ Versions below 1.0 were built and tested by CI but never released.
   whisper.cpp's `samples/jfk.mp3`.
 - Nothing about the user is sent anywhere. The internet is used only for the model and FFmpeg downloads and the update check.
 - To move to a newer FFmpeg, change `Ffmpeg.Package` (version, URL, size, SHA-256) and the workflow's self-test download.
+- Other languages (1.1): the shared `Lang`/`LangUi` (kudu-common) put each window into the chosen language as it's shown
+  (kept as `AppLanguage`; `Language` is the speech language). Texts are in `src/KUDUTEXT/Lang/<code>.txt`, made and
+  checked with kudu-common's `tools/lang.py`; the names of the 100 speech languages stay in English. When adding or
+  changing a text, add it to every language file (`tools/lang.py check ../kudutext`).

@@ -232,9 +232,11 @@ namespace Kudutext.Views
         private void UpdateStatus()
         {
             var problems = _rows.Count(r => r.Problem != null);
-            _status.Text = Format.Count(_rows.Count, "line") + (problems > 0 ? " · " + Format.Count(problems, "line needs", "lines need") + " a look" : string.Empty)
-                           + (_dirty ? " · not saved yet" : string.Empty);
-            Title = (_dirty ? "• " : string.Empty) + "Check the text · " + _job.FileName;
+            // Put together from pieces, each in the language in use.
+            _status.Text = Format.Count(_rows.Count, "line")
+                           + (problems > 0 ? " · " + Lang.T(problems == 1 ? "1 line needs a look" : "{0} lines need a look", problems.ToString("N0")) : string.Empty)
+                           + (_dirty ? " · " + Lang.T("not saved yet") : string.Empty);
+            Title = (_dirty ? "• " : string.Empty) + Lang.T("Check the text · {0}", _job.FileName);
         }
 
         private void ShowNote(string text)

@@ -28,6 +28,7 @@
 - **Check and correct the text**: go through it line by line with its times, play any line to hear it, fix words or times, split or join lines, and replace a word everywhere at once (handy for names). Saving writes the subtitle and text files again.
 - **Subtitles into the video**: add them as a subtitle track players can turn on and off (quick, the picture isn't changed), or write them into the picture so they always show, on any player, phone or website (small, normal or large words). The new video is saved beside the original. This uses FFmpeg, a free video tool downloaded once (110 MB), the first time.
 - **Never replaces your files**: if a `talk.srt` that KUDUTEXT didn't make is already there, the new one is saved as `talk (2).srt`.
+- **In your language**: English, Malayalam (മലയാളം), Hindi (हिन्दी), Spanish, French and Arabic (with the windows mirrored for right-to-left). KUDUTEXT starts in the same language as Windows when it has it; choose another in Settings. (This is the language of KUDUTEXT itself; the speech it listens to can be any of its 100 languages.)
 - Light and dark themes, following Windows.
 
 ## Download

@@ -1,0 +1,338 @@
+KUDUTEXT is already open.	KUDUTEXT مفتوح بالفعل.
+Something went wrong:\n\n{0}	حدث خطأ ما:\n\n{0}
+Azeem Bukhari	Azeem Bukhari
+less than a second	أقل من ثانية
+{0} h {1} min	{0} ساعة {1} دقيقة
+{0} min {1} s	{0} دقيقة {1} ثانية
+The download of {0} stopped part way. Check the internet connection; it carries on from where it stopped.	توقف تنزيل {0} في منتصف الطريق. تحقّق من الاتصال بالإنترنت؛ سيكمل من حيث توقف.
+{0} couldn't be downloaded (the site said {1}).	تعذّر تنزيل {0} (ردّ الموقع: {1}).
+The downloaded {0} didn't check out, so it wasn't kept. Please try again.	لم يجتز {0} الذي تم تنزيله الفحص، فلم يُحتفظ به. حاول مرة أخرى.
+The FFmpeg download didn't have ffmpeg.exe in it.	لم يكن ffmpeg.exe ضمن تنزيل FFmpeg.
+{0}.new	{0}.new
+The FFmpeg download couldn't be opened. Please try again.	تعذّر فتح تنزيل FFmpeg. حاول مرة أخرى.
+.mkv	.mkv
+(subtitles in picture)	(ترجمة مكتوبة في الصورة)
+(subtitles)	(ترجمة مكتوبة)
+srt	srt
+a plain file name is needed	يلزم اسم ملف بسيط
+FFmpeg couldn't be started: {0}	تعذّر تشغيل FFmpeg: {0}
+FFmpeg stopped{0}	توقف FFmpeg{0}
+ (code {0}).	 (الرمز {0}).
+{0}.json	{0}.json
+Afrikaans	Afrikaans
+Albanian	Albanian
+Amharic	Amharic
+Arabic	Arabic
+Armenian	Armenian
+Assamese	Assamese
+Azerbaijani	Azerbaijani
+Bashkir	Bashkir
+Basque	Basque
+Belarusian	Belarusian
+Bengali	Bengali
+Bosnian	Bosnian
+Breton	Breton
+Bulgarian	Bulgarian
+Cantonese	Cantonese
+Catalan	Catalan
+Chinese	Chinese
+Croatian	Croatian
+Czech	Czech
+Danish	Danish
+Dutch	Dutch
+English	English
+Estonian	Estonian
+Faroese	Faroese
+Finnish	Finnish
+French	French
+Galician	Galician
+Georgian	Georgian
+German	German
+Greek	Greek
+Gujarati	Gujarati
+Haitian Creole	Haitian Creole
+Hausa	Hausa
+Hawaiian	Hawaiian
+Hebrew	Hebrew
+Hindi	Hindi
+Hungarian	Hungarian
+Icelandic	Icelandic
+Indonesian	Indonesian
+Italian	Italian
+Japanese	Japanese
+Javanese	Javanese
+Kannada	Kannada
+Kazakh	Kazakh
+Khmer	Khmer
+Korean	Korean
+Lao	Lao
+Latin	Latin
+Latvian	Latvian
+Lingala	Lingala
+Lithuanian	Lithuanian
+Luxembourgish	Luxembourgish
+Macedonian	Macedonian
+Malagasy	Malagasy
+Malay	Malay
+Malayalam	Malayalam
+Maltese	Maltese
+Maori	Maori
+Marathi	Marathi
+Mongolian	Mongolian
+Myanmar	Myanmar
+Nepali	Nepali
+Norwegian	Norwegian
+Nynorsk	Nynorsk
+Occitan	Occitan
+Pashto	Pashto
+Persian	Persian
+Polish	Polish
+Portuguese	Portuguese
+Punjabi	Punjabi
+Romanian	Romanian
+Russian	Russian
+Sanskrit	Sanskrit
+Serbian	Serbian
+Shona	Shona
+Sindhi	Sindhi
+Sinhala	Sinhala
+Slovak	Slovak
+Slovenian	Slovenian
+Somali	Somali
+Spanish	Spanish
+Sundanese	Sundanese
+Swahili	Swahili
+Swedish	Swedish
+Tagalog	Tagalog
+Tajik	Tajik
+Tamil	Tamil
+Tatar	Tatar
+Telugu	Telugu
+Thai	Thai
+Tibetan	Tibetan
+Turkish	Turkish
+Turkmen	Turkmen
+Ukrainian	Ukrainian
+Urdu	Urdu
+Uzbek	Uzbek
+Vietnamese	Vietnamese
+Welsh	Welsh
+Yiddish	Yiddish
+Yoruba	Yoruba
+Find it by itself	اكتشافها تلقائيًا
+Reading the sound	قراءة الصوت
+{0}.wav	{0}.wav
+The file isn't there any more.	الملف لم يعد موجودًا هناك.
+Listening	الاستماع
+Saving	الحفظ
+The text files couldn't be saved there (no permission). Choose another folder in the options.	تعذّر حفظ الملفات النصية هناك (لا يوجد إذن). اختر مجلدًا آخر في الخيارات.
+Theme	Theme
+Model	Model
+Language	اللغة
+Translate	Translate
+Formats	Formats
+Quick, for clear speech	سريع، للكلام الواضح
+The best balance of speed and accuracy	أفضل توازن بين السرعة والدقة
+Most accurate, slowest	الأدق، والأبطأ
+Models	Models
+{0}.part	{0}.part
+the speech model	نموذج الكلام
+The start isn't a time (like 00:01:02.500).	البداية ليست وقتًا (مثل 00:01:02.500).
+The end isn't a time (like 00:01:02.500).	النهاية ليست وقتًا (مثل 00:01:02.500).
+It ends before it starts.	ينتهي قبل أن يبدأ.
+It starts before the line above.	يبدأ قبل السطر الذي فوقه.
+Missing theme resource {0}	Missing theme resource {0}
+Light	فاتح
+Styles	Styles
+Dark	داكن
+Subtitles (.srt), for most players	ترجمة مكتوبة (.srt)، لمعظم المشغّلات
+Subtitles (.vtt), for web pages	ترجمة مكتوبة (.vtt)، لصفحات الويب
+Text (.txt), the words only	نص (.txt)، الكلمات فقط
+Application	Application
+auto	auto
+The speech engine couldn't be started: {0}	تعذّر تشغيل محرّك الكلام: {0}
+The speech engine stopped{0}	توقف محرّك الكلام{0}
+No sound could be read from this file. It may have no sound, or be a kind Windows can't play (getting FFmpeg in Settings lets KUDUTEXT read more kinds of file).	تعذّرت قراءة أي صوت من هذا الملف. قد لا يحتوي على صوت، أو يكون من نوع لا يستطيع Windows تشغيله (الحصول على FFmpeg من الإعدادات يتيح لـ KUDUTEXT قراءة أنواع أكثر من الملفات).
+no sound	لا يوجد صوت
+No sound could be read from this file. It may have no sound, or be damaged.	تعذّرت قراءة أي صوت من هذا الملف. قد لا يحتوي على صوت، أو يكون تالفًا.
+Error message shown: {0}	Error message shown: {0}
+All files	كل الملفات
+Save	حفظ
+Cancel	إلغاء
+Match case	مطابقة حالة الأحرف
+Check the text · {0}	مراجعة النص · {0}
+Play a line to hear it, correct its words or times, then save. {0}	شغّل سطرًا لتسمعه، وصحّح كلماته أو أوقاته، ثم احفظ. {0}
+Language: {0}.	اللغة: {0}.
+Play	تشغيل
+Play the chosen line (Ctrl+Space)	تشغيل السطر المختار (Ctrl+Space)
+Split	تقسيم
+Split the line where the cursor is (Ctrl+Enter)	تقسيم السطر عند المؤشر (Ctrl+Enter)
+Join with next	الدمج مع التالي
+Join the chosen line with the one after it	دمج السطر المختار مع الذي يليه
+Remove	إزالة
+Remove the chosen line	إزالة السطر المختار
+Find	بحث
+Replace with	الاستبدال بـ
+Next	التالي
+Replace all	استبدال الكل
+Close	إغلاق
+Save the text and the subtitle files again (Ctrl+S)	حفظ النص وملفات الترجمة مرة أخرى (Ctrl+S)
+Save the changes to the text?	هل تريد حفظ التغييرات على النص؟
+1 line needs a look	سطر واحد يحتاج إلى مراجعة
+{0} lines need a look	{0} أسطر تحتاج إلى مراجعة
+not saved yet	لم يُحفظ بعد
+Click into a line first, then put the cursor where it should be split.	انقر أولًا داخل سطر، ثم ضع المؤشر حيث يجب تقسيمه.
+Put the cursor between two words of the line to split it there.	ضع المؤشر بين كلمتين من السطر لتقسيمه هناك.
+Choose a line that has another line after it.	اختر سطرًا يليه سطر آخر.
+Type the words to find first.	اكتب أولًا الكلمات المراد البحث عنها.
+"{0}" wasn't found.	لم يتم العثور على "{0}".
+Replaced {0} in {1}.	تم استبدال {0} في {1}.
+Line {0} needs a look before saving: {1}	يحتاج السطر {0} إلى مراجعة قبل الحفظ: {1}
+It couldn't be saved: {0}	تعذّر الحفظ: {0}
+Saved: {0}	تم الحفظ: {0}
+Play this line	تشغيل هذا السطر
+Start	البداية
+End	النهاية
+Words	الكلمات
+Problem	المشكلة
+Playing	قيد التشغيل
+The video or recording isn't there any more, so the line can't be played.	الفيديو أو التسجيل لم يعد موجودًا، فلا يمكن تشغيل السطر.
+The line can't be played: no speakers or headphones were found.	لا يمكن تشغيل السطر: لم يتم العثور على سماعات.
+The line can't be played: Windows can't play this kind of file.	لا يمكن تشغيل السطر: لا يستطيع Windows تشغيل هذا النوع من الملفات.
+Speech to text and subtitles, on your PC	من الكلام إلى نص وترجمة مكتوبة، على حاسوبك
+Add files	إضافة ملفات
+Choose videos or recordings (Ctrl+O)	اختر مقاطع فيديو أو تسجيلات (Ctrl+O)
+Settings	الإعدادات
+About KUDUTEXT	حول KUDUTEXT
+Stop	إيقاف
+Try again	إعادة المحاولة
+Drop videos or recordings here	أفلت مقاطع الفيديو أو التسجيلات هنا
+MP4, MKV, MOV, AVI, WMV, MP3, WAV, M4A, FLAC and more. They're done one after another, on this PC.	MP4 وMKV وMOV وAVI وWMV وMP3 وWAV وM4A وFLAC وغيرها. تُعالج واحدًا تلو الآخر، على هذا الحاسوب.
+Choose files	اختيار ملفات
+Clear finished	مسح المنتهية
+A file is being turned into text. Stop it and close KUDUTEXT?\n\nIt starts again from the beginning next time.	يجري تحويل ملف إلى نص. هل تريد إيقافه وإغلاق KUDUTEXT؟\n\nسيبدأ من جديد في المرة القادمة.
+Accuracy	الدقة
+Language spoken	لغة الكلام
+Value	القيمة
+Key	المفتاح
+Write it in English (translate)	اكتبه بالإنجليزية (ترجمة)
+Speech in any language becomes English text	الكلام بأي لغة يصبح نصًا بالإنجليزية
+Save as	الحفظ بصيغة
+Save to	الحفظ في
+Change	تغيير
+Where should the text files go?	أين توضع الملفات النصية؟
+Next to each file	بجانب كل ملف
+ready on this PC	جاهز على هذا الحاسوب
+{0} to download once, the first time	{0} للتنزيل مرة واحدة، في المرة الأولى
+Next to each video or recording	بجانب كل فيديو أو تسجيل
+Choose videos or recordings	اختر مقاطع فيديو أو تسجيلات
+Videos and recordings|{0}	مقاطع فيديو وتسجيلات|{0}
+That kind of file can't be turned into text. Choose a video or a recording (MP4, MKV, MOV, MP3, WAV, M4A and more).	لا يمكن تحويل هذا النوع من الملفات إلى نص. اختر فيديو أو تسجيلًا (MP4 وMKV وMOV وMP3 وWAV وM4A وغيرها).
+1 file was left out: only videos and recordings can be turned into text.	تم استبعاد ملف واحد: يمكن تحويل مقاطع الفيديو والتسجيلات فقط إلى نص.
+{0} files were left out: only videos and recordings can be turned into text.	تم استبعاد {0} ملفات: يمكن تحويل مقاطع الفيديو والتسجيلات فقط إلى نص.
+The text for this file couldn't be read. Add the file again to turn it into text again.	تعذّرت قراءة نص هذا الملف. أضف الملف مرة أخرى لتحويله إلى نص من جديد.
+The video isn't there any more.	الفيديو لم يعد موجودًا.
+Working	قيد العمل
+{0} waiting	{0} في الانتظار
+{0} done	{0} منتهية
+{0} couldn't be done	{0} تعذّر إنجازها
+Nothing in the list yet	لا شيء في القائمة بعد
+The speech engine is missing. Please install KUDUTEXT again.	محرّك الكلام مفقود. يرجى تثبيت KUDUTEXT مرة أخرى.
+Getting the {0} speech model ({1})	جارٍ الحصول على نموذج الكلام {0} ({1})
+This happens once. After that everything works without the internet, and your files never leave this PC.	يحدث هذا مرة واحدة. بعد ذلك يعمل كل شيء دون إنترنت، ولا تغادر ملفاتك هذا الحاسوب أبدًا.
+{0} of {1} · {2}. This happens once; after that it all works without the internet.	{0} من {1} · {2}. يحدث هذا مرة واحدة؛ بعد ذلك يعمل كل شيء دون إنترنت.
+The {0} speech model wasn't downloaded	لم يتم تنزيل نموذج الكلام {0}
+It carries on from where it stopped when you try again.	يكمل من حيث توقف عند إعادة المحاولة.
+The {0} speech model couldn't be downloaded	تعذّر تنزيل نموذج الكلام {0}
+The {0} speech model couldn't be saved	تعذّر حفظ نموذج الكلام {0}
+{0} {1} is available	{0} {1} متاح
+Check text	مراجعة النص
+Read through the text, correct it and save again	اقرأ النص وصحّحه واحفظه مرة أخرى
+Into video	في الفيديو
+Put the subtitles into the video	وضع الترجمة المكتوبة في الفيديو
+Show files	إظهار الملفات
+Take it off the list	إزالة من القائمة
+Starting	جارٍ البدء
+No speech was found	لم يتم العثور على كلام
+It couldn't be done.	تعذّر إنجاز ذلك.
+Stopped	متوقف
+Waiting · {0} · {1}	في الانتظار · {0} · {1}
+into English	إلى الإنجليزية
+Done	منتهٍ
+Couldn't be done	تعذّر الإنجاز
+Waiting	في الانتظار
+The text files aren't there any more.	الملفات النصية لم تعد موجودة هناك.
+Settings · KUDUTEXT	الإعدادات · KUDUTEXT
+Appearance	المظهر
+Same as Windows	مثل Windows
+Speech models on this PC	نماذج الكلام على هذا الحاسوب
+Each one is downloaded once, the first time it's used. Removing one frees its space; it's downloaded again if it's needed.	يُنزَّل كل منها مرة واحدة، عند أول استخدام. إزالة أحدها تحرّر مساحته؛ ويُنزَّل مجددًا عند الحاجة.
+Open the models folder	فتح مجلد النماذج
+FFmpeg	FFmpeg
+A free video tool, used to put subtitles into videos and to read kinds of file Windows can't. It's downloaded once, the first time it's needed.	أداة فيديو مجانية، تُستخدم لوضع الترجمة المكتوبة في مقاطع الفيديو ولقراءة ملفات لا يستطيع Windows قراءتها. تُنزَّل مرة واحدة، عند أول حاجة إليها.
+Updates	التحديثات
+Check for a new KUDUTEXT version when it starts	البحث عن إصدار جديد من KUDUTEXT عند التشغيل
+Only asks GitHub for the latest version number. Nothing is downloaded without asking.	يسأل GitHub عن رقم أحدث إصدار فقط. لا يتم تنزيل أي شيء دون سؤالك.
+FFmpeg {0} is on this PC.	FFmpeg {0} موجود على هذا الحاسوب.
+Not downloaded yet ({0}).	لم يُنزَّل بعد ({0}).
+It couldn't be removed now (it may be in use). Try again when nothing is being done.	تعذّرت إزالته الآن (قد يكون قيد الاستخدام). حاول مرة أخرى حين لا يجري أي عمل.
+Get it now	الحصول عليه الآن
+Getting FFmpeg: {0} of {1}	جارٍ الحصول على FFmpeg: {0} من {1}
+· on this PC	· على هذا الحاسوب
+· not downloaded	· لم يُنزَّل
+Remove the {0} speech model? It frees {1}, and is downloaded again if it's needed.	هل تريد إزالة نموذج الكلام {0}؟ سيحرّر {1}، ويُنزَّل مجددًا عند الحاجة.
+KUDUTEXT	KUDUTEXT
+Version {0} · Speech to text and subtitles, on your PC	الإصدار {0} · من الكلام إلى نص وترجمة مكتوبة، على حاسوبك
+Azeem, with Claude and	Azeem, with Claude and
+Made by	Made by
+Licence	الترخيص
+MIT · free and open source	MIT · مجاني ومفتوح المصدر
+View	عرض
+Source code	الشيفرة المصدرية
+Speech engine	محرّك الكلام
+whisper.cpp (MIT licence)	whisper.cpp (MIT licence)
+Speech models	نماذج الكلام
+Whisper models by OpenAI (MIT licence), downloaded from Hugging Face the first time	نماذج Whisper من OpenAI (ترخيص MIT)، تُنزَّل من Hugging Face في المرة الأولى
+Reading sound	قراءة الصوت
+NAudio (MIT licence) and Windows' own Media Foundation	NAudio (ترخيص MIT) وMedia Foundation الخاص بـ Windows
+Videos	مقاطع الفيديو
+FFmpeg (GPL licence), downloaded the first time it's needed	FFmpeg (ترخيص GPL)، يُنزَّل عند أول حاجة إليه
+Third-party	أطراف أخرى
+Third-party notices	إشعارات الأطراف الأخرى
+KUDUTEXT works on your computer only. Your videos and recordings never leave it: the internet is used only to download a speech model and FFmpeg once, and to check for a new version.	يعمل KUDUTEXT على حاسوبك فقط. لا تغادره مقاطع الفيديو والتسجيلات أبدًا: يُستخدم الإنترنت فقط لتنزيل نموذج كلام وFFmpeg مرة واحدة، وللبحث عن إصدار جديد.
+Check for updates	البحث عن تحديثات
+Couldn't find any published version yet.	لم يتم العثور على أي إصدار منشور بعد.
+KUDUTEXT {0} is available. Open the download page?	KUDUTEXT {0} متاح. هل تريد فتح صفحة التنزيل؟
+You have the latest version.	لديك أحدث إصدار.
+Couldn't check for updates. Check your internet connection and try again.	تعذّر البحث عن تحديثات. تحقّق من اتصالك بالإنترنت وحاول مرة أخرى.
+{0} ran into a problem it couldn't get past, and has to close.	واجه {0} مشكلة لم يستطع تجاوزها، ولا بد من إغلاقه.
+Subtitles into the video · {0}	الترجمة المكتوبة في الفيديو · {0}
+As subtitles that can be turned on and off	كترجمة مكتوبة يمكن تشغيلها وإيقافها
+Quick, and the picture isn't changed. Most players show them (VLC, Windows Media Player, many TVs); if not, turn them on in the player.	سريع، ولا تتغيّر الصورة. تعرضها معظم المشغّلات (VLC وWindows Media Player وكثير من أجهزة التلفاز)؛ وإلا فشغّلها من المشغّل.
+Written into the picture	مكتوبة في الصورة
+Always shown, on any player, phone or website. Takes longer, because the whole video is made again.	تظهر دائمًا، على أي مشغّل أو هاتف أو موقع. تستغرق وقتًا أطول، لأن الفيديو كله يُصنع من جديد.
+Small	صغير
+Normal	عادي
+Large	كبير
+Size of the words	حجم الكلمات
+Show the video	إظهار الفيديو
+The new video is saved beside the original, which isn't changed.	يُحفظ الفيديو الجديد بجانب الأصلي، ولا يتغيّر الأصلي.
+This uses FFmpeg, a free video tool. It's downloaded once ({0}) when you start.	يستخدم هذا FFmpeg، وهي أداة فيديو مجانية. تُنزَّل مرة واحدة ({0}) عند البدء.
+The video is being made. Stop it and close?	يجري صنع الفيديو. هل تريد إيقافه والإغلاق؟
+Saved as "{0}" next to the video.	سيُحفظ باسم "{0}" بجانب الفيديو.
+Saved as "{0}" in {1}.	سيُحفظ باسم "{0}" في {1}.
+Getting FFmpeg, once…	جارٍ الحصول على FFmpeg، مرة واحدة…
+Getting FFmpeg, once: {0} of {1}	جارٍ الحصول على FFmpeg، مرة واحدة: {0} من {1}
+There's no speech in this file's text, so there are no subtitles to add.	لا يوجد كلام في نص هذا الملف، فلا توجد ترجمة مكتوبة لإضافتها.
+{0}.unfinished{1}	{0}.unfinished{1}
+Writing the subtitles into the picture	جارٍ كتابة الترجمة في الصورة
+Adding the subtitles	جارٍ إضافة الترجمة المكتوبة
+Saved "{0}".	تم حفظ "{0}".
+Stopped. Nothing was saved.	توقف. لم يُحفظ أي شيء.
+The video couldn't be made. {0}	تعذّر صنع الفيديو. {0}
+The video couldn't be saved: {0}	تعذّر حفظ الفيديو: {0}
+{0} line	{0} سطر
+{0} lines	{0} أسطر
+{0} time	{0} مرة
+{0} times	{0} مرات
+Videos and recordings	مقاطع فيديو وتسجيلات

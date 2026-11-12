@@ -12,7 +12,7 @@
     <Prefer32Bit>false</Prefer32Bit>
     <StartupObject>Kudutext.Program</StartupObject>
 
-    <Version>1.0.1</Version>
+    <Version>1.1.0</Version>
     <Product>KUDUTEXT</Product>
     <Company>Azeem Bukhari</Company>
     <Authors>Azeem Bukhari</Authors>
@@ -51,6 +51,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Lang\*.txt" LogicalName="Kudutext.Lang.%(Filename).txt" />
     <EmbeddedResource Include="Themes\*.xaml" LogicalName="Kudutext.Themes.%(Filename).xaml" />
     <EmbeddedResource Include="Assets\KUDUTEXT.ico" LogicalName="Kudutext.Assets.KUDUTEXT.ico" />
     <None Include="..\..\LICENSE" Link="LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />

@@ -1,0 +1,338 @@
+KUDUTEXT is already open.	KUDUTEXT est déjà ouvert.
+Something went wrong:\n\n{0}	Un problème est survenu :\n\n{0}
+Azeem Bukhari	Azeem Bukhari
+less than a second	moins d'une seconde
+{0} h {1} min	{0} h {1} min
+{0} min {1} s	{0} min {1} s
+The download of {0} stopped part way. Check the internet connection; it carries on from where it stopped.	Le téléchargement de {0} s'est arrêté en cours de route. Vérifiez la connexion internet ; il reprendra là où il s'est arrêté.
+{0} couldn't be downloaded (the site said {1}).	Impossible de télécharger {0} (le site a répondu {1}).
+The downloaded {0} didn't check out, so it wasn't kept. Please try again.	Le {0} téléchargé n'a pas passé la vérification, il n'a donc pas été gardé. Veuillez réessayer.
+The FFmpeg download didn't have ffmpeg.exe in it.	Le téléchargement de FFmpeg ne contenait pas ffmpeg.exe.
+{0}.new	{0}.new
+The FFmpeg download couldn't be opened. Please try again.	Impossible d'ouvrir le téléchargement de FFmpeg. Veuillez réessayer.
+.mkv	.mkv
+(subtitles in picture)	(sous-titres dans l'image)
+(subtitles)	(sous-titres)
+srt	srt
+a plain file name is needed	un simple nom de fichier est nécessaire
+FFmpeg couldn't be started: {0}	Impossible de démarrer FFmpeg : {0}
+FFmpeg stopped{0}	FFmpeg s'est arrêté{0}
+ (code {0}).	 (code {0}).
+{0}.json	{0}.json
+Afrikaans	Afrikaans
+Albanian	Albanian
+Amharic	Amharic
+Arabic	Arabic
+Armenian	Armenian
+Assamese	Assamese
+Azerbaijani	Azerbaijani
+Bashkir	Bashkir
+Basque	Basque
+Belarusian	Belarusian
+Bengali	Bengali
+Bosnian	Bosnian
+Breton	Breton
+Bulgarian	Bulgarian
+Cantonese	Cantonese
+Catalan	Catalan
+Chinese	Chinese
+Croatian	Croatian
+Czech	Czech
+Danish	Danish
+Dutch	Dutch
+English	English
+Estonian	Estonian
+Faroese	Faroese
+Finnish	Finnish
+French	French
+Galician	Galician
+Georgian	Georgian
+German	German
+Greek	Greek
+Gujarati	Gujarati
+Haitian Creole	Haitian Creole
+Hausa	Hausa
+Hawaiian	Hawaiian
+Hebrew	Hebrew
+Hindi	Hindi
+Hungarian	Hungarian
+Icelandic	Icelandic
+Indonesian	Indonesian
+Italian	Italian
+Japanese	Japanese
+Javanese	Javanese
+Kannada	Kannada
+Kazakh	Kazakh
+Khmer	Khmer
+Korean	Korean
+Lao	Lao
+Latin	Latin
+Latvian	Latvian
+Lingala	Lingala
+Lithuanian	Lithuanian
+Luxembourgish	Luxembourgish
+Macedonian	Macedonian
+Malagasy	Malagasy
+Malay	Malay
+Malayalam	Malayalam
+Maltese	Maltese
+Maori	Maori
+Marathi	Marathi
+Mongolian	Mongolian
+Myanmar	Myanmar
+Nepali	Nepali
+Norwegian	Norwegian
+Nynorsk	Nynorsk
+Occitan	Occitan
+Pashto	Pashto
+Persian	Persian
+Polish	Polish
+Portuguese	Portuguese
+Punjabi	Punjabi
+Romanian	Romanian
+Russian	Russian
+Sanskrit	Sanskrit
+Serbian	Serbian
+Shona	Shona
+Sindhi	Sindhi
+Sinhala	Sinhala
+Slovak	Slovak
+Slovenian	Slovenian
+Somali	Somali
+Spanish	Spanish
+Sundanese	Sundanese
+Swahili	Swahili
+Swedish	Swedish
+Tagalog	Tagalog
+Tajik	Tajik
+Tamil	Tamil
+Tatar	Tatar
+Telugu	Telugu
+Thai	Thai
+Tibetan	Tibetan
+Turkish	Turkish
+Turkmen	Turkmen
+Ukrainian	Ukrainian
+Urdu	Urdu
+Uzbek	Uzbek
+Vietnamese	Vietnamese
+Welsh	Welsh
+Yiddish	Yiddish
+Yoruba	Yoruba
+Find it by itself	Le trouver tout seul
+Reading the sound	Lecture du son
+{0}.wav	{0}.wav
+The file isn't there any more.	Le fichier n'est plus là.
+Listening	Écoute
+Saving	Enregistrement
+The text files couldn't be saved there (no permission). Choose another folder in the options.	Les fichiers texte n'ont pas pu être enregistrés là (pas d'autorisation). Choisissez un autre dossier dans les options.
+Theme	Theme
+Model	Model
+Language	Langue
+Translate	Translate
+Formats	Formats
+Quick, for clear speech	Rapide, pour une parole claire
+The best balance of speed and accuracy	Le meilleur équilibre entre vitesse et précision
+Most accurate, slowest	Le plus précis, le plus lent
+Models	Models
+{0}.part	{0}.part
+the speech model	le modèle vocal
+The start isn't a time (like 00:01:02.500).	Le début n'est pas une heure (comme 00:01:02.500).
+The end isn't a time (like 00:01:02.500).	La fin n'est pas une heure (comme 00:01:02.500).
+It ends before it starts.	Elle finit avant de commencer.
+It starts before the line above.	Elle commence avant la ligne du dessus.
+Missing theme resource {0}	Missing theme resource {0}
+Light	Clair
+Styles	Styles
+Dark	Sombre
+Subtitles (.srt), for most players	Sous-titres (.srt), pour la plupart des lecteurs
+Subtitles (.vtt), for web pages	Sous-titres (.vtt), pour les pages web
+Text (.txt), the words only	Texte (.txt), les mots seulement
+Application	Application
+auto	auto
+The speech engine couldn't be started: {0}	Impossible de démarrer le moteur vocal : {0}
+The speech engine stopped{0}	Le moteur vocal s'est arrêté{0}
+No sound could be read from this file. It may have no sound, or be a kind Windows can't play (getting FFmpeg in Settings lets KUDUTEXT read more kinds of file).	Aucun son n'a pu être lu dans ce fichier. Il n'a peut-être pas de son, ou c'est un type que Windows ne sait pas lire (avec FFmpeg, depuis les Paramètres, KUDUTEXT lit plus de types de fichiers).
+no sound	pas de son
+No sound could be read from this file. It may have no sound, or be damaged.	Aucun son n'a pu être lu dans ce fichier. Il n'a peut-être pas de son, ou il est abîmé.
+Error message shown: {0}	Error message shown: {0}
+All files	Tous les fichiers
+Save	Enregistrer
+Cancel	Annuler
+Match case	Respecter la casse
+Check the text · {0}	Vérifier le texte · {0}
+Play a line to hear it, correct its words or times, then save. {0}	Lisez une ligne pour l'entendre, corrigez ses mots ou ses temps, puis enregistrez. {0}
+Language: {0}.	Langue : {0}.
+Play	Lire
+Play the chosen line (Ctrl+Space)	Lire la ligne choisie (Ctrl+Espace)
+Split	Couper
+Split the line where the cursor is (Ctrl+Enter)	Couper la ligne à l'endroit du curseur (Ctrl+Entrée)
+Join with next	Joindre à la suivante
+Join the chosen line with the one after it	Joindre la ligne choisie à celle qui la suit
+Remove	Retirer
+Remove the chosen line	Retirer la ligne choisie
+Find	Rechercher
+Replace with	Remplacer par
+Next	Suivant
+Replace all	Tout remplacer
+Close	Fermer
+Save the text and the subtitle files again (Ctrl+S)	Enregistrer à nouveau le texte et les sous-titres (Ctrl+S)
+Save the changes to the text?	Enregistrer les modifications du texte ?
+1 line needs a look	1 ligne à vérifier
+{0} lines need a look	{0} lignes à vérifier
+not saved yet	pas encore enregistré
+Click into a line first, then put the cursor where it should be split.	Cliquez d'abord dans une ligne, puis placez le curseur là où elle doit être coupée.
+Put the cursor between two words of the line to split it there.	Placez le curseur entre deux mots de la ligne pour la couper à cet endroit.
+Choose a line that has another line after it.	Choisissez une ligne suivie d'une autre ligne.
+Type the words to find first.	Tapez d'abord les mots à rechercher.
+"{0}" wasn't found.	« {0} » est introuvable.
+Replaced {0} in {1}.	{0} remplacés dans {1}.
+Line {0} needs a look before saving: {1}	La ligne {0} est à vérifier avant d'enregistrer : {1}
+It couldn't be saved: {0}	Impossible d'enregistrer : {0}
+Saved: {0}	Enregistré : {0}
+Play this line	Lire cette ligne
+Start	Début
+End	Fin
+Words	Mots
+Problem	Problème
+Playing	Lecture
+The video or recording isn't there any more, so the line can't be played.	La vidéo ou l'enregistrement n'est plus là, la ligne ne peut donc pas être lue.
+The line can't be played: no speakers or headphones were found.	La ligne ne peut pas être lue : aucun haut-parleur ni casque trouvé.
+The line can't be played: Windows can't play this kind of file.	La ligne ne peut pas être lue : Windows ne sait pas lire ce type de fichier.
+Speech to text and subtitles, on your PC	De la parole au texte et aux sous-titres, sur votre PC
+Add files	Ajouter des fichiers
+Choose videos or recordings (Ctrl+O)	Choisir des vidéos ou des enregistrements (Ctrl+O)
+Settings	Paramètres
+About KUDUTEXT	À propos de KUDUTEXT
+Stop	Arrêter
+Try again	Réessayer
+Drop videos or recordings here	Déposez ici des vidéos ou des enregistrements
+MP4, MKV, MOV, AVI, WMV, MP3, WAV, M4A, FLAC and more. They're done one after another, on this PC.	MP4, MKV, MOV, AVI, WMV, MP3, WAV, M4A, FLAC et plus. Ils sont traités l'un après l'autre, sur ce PC.
+Choose files	Choisir des fichiers
+Clear finished	Effacer les terminés
+A file is being turned into text. Stop it and close KUDUTEXT?\n\nIt starts again from the beginning next time.	Un fichier est en train d'être mis en texte. L'arrêter et fermer KUDUTEXT ?\n\nIl recommencera depuis le début la prochaine fois.
+Accuracy	Précision
+Language spoken	Langue parlée
+Value	Valeur
+Key	Clé
+Write it in English (translate)	L'écrire en anglais (traduire)
+Speech in any language becomes English text	La parole dans n'importe quelle langue devient du texte en anglais
+Save as	Enregistrer en
+Save to	Enregistrer dans
+Change	Changer
+Where should the text files go?	Où mettre les fichiers texte ?
+Next to each file	À côté de chaque fichier
+ready on this PC	prêt sur ce PC
+{0} to download once, the first time	{0} à télécharger une fois, la première fois
+Next to each video or recording	À côté de chaque vidéo ou enregistrement
+Choose videos or recordings	Choisir des vidéos ou des enregistrements
+Videos and recordings|{0}	Vidéos et enregistrements|{0}
+That kind of file can't be turned into text. Choose a video or a recording (MP4, MKV, MOV, MP3, WAV, M4A and more).	Ce type de fichier ne peut pas être mis en texte. Choisissez une vidéo ou un enregistrement (MP4, MKV, MOV, MP3, WAV, M4A et plus).
+1 file was left out: only videos and recordings can be turned into text.	1 fichier a été écarté : seuls les vidéos et enregistrements peuvent être mis en texte.
+{0} files were left out: only videos and recordings can be turned into text.	{0} fichiers ont été écartés : seuls les vidéos et enregistrements peuvent être mis en texte.
+The text for this file couldn't be read. Add the file again to turn it into text again.	Le texte de ce fichier n'a pas pu être lu. Ajoutez à nouveau le fichier pour le remettre en texte.
+The video isn't there any more.	La vidéo n'est plus là.
+Working	En cours
+{0} waiting	{0} en attente
+{0} done	{0} terminés
+{0} couldn't be done	{0} n'ont pas pu être faits
+Nothing in the list yet	Rien dans la liste pour l'instant
+The speech engine is missing. Please install KUDUTEXT again.	Le moteur vocal est absent. Veuillez réinstaller KUDUTEXT.
+Getting the {0} speech model ({1})	Récupération du modèle vocal {0} ({1})
+This happens once. After that everything works without the internet, and your files never leave this PC.	Cela n'arrive qu'une fois. Ensuite tout fonctionne sans internet, et vos fichiers ne quittent jamais ce PC.
+{0} of {1} · {2}. This happens once; after that it all works without the internet.	{0} sur {1} · {2}. Cela n'arrive qu'une fois ; ensuite tout fonctionne sans internet.
+The {0} speech model wasn't downloaded	Le modèle vocal {0} n'a pas été téléchargé
+It carries on from where it stopped when you try again.	Il reprend là où il s'est arrêté quand vous réessayez.
+The {0} speech model couldn't be downloaded	Impossible de télécharger le modèle vocal {0}
+The {0} speech model couldn't be saved	Impossible d'enregistrer le modèle vocal {0}
+{0} {1} is available	{0} {1} est disponible
+Check text	Vérifier le texte
+Read through the text, correct it and save again	Relire le texte, le corriger et l'enregistrer à nouveau
+Into video	Dans la vidéo
+Put the subtitles into the video	Mettre les sous-titres dans la vidéo
+Show files	Afficher les fichiers
+Take it off the list	Retirer de la liste
+Starting	Démarrage
+No speech was found	Aucune parole trouvée
+It couldn't be done.	Cela n'a pas pu être fait.
+Stopped	Arrêté
+Waiting · {0} · {1}	En attente · {0} · {1}
+into English	en anglais
+Done	Terminé
+Couldn't be done	N'a pas pu être fait
+Waiting	En attente
+The text files aren't there any more.	Les fichiers texte ne sont plus là.
+Settings · KUDUTEXT	Paramètres · KUDUTEXT
+Appearance	Apparence
+Same as Windows	Comme Windows
+Speech models on this PC	Modèles vocaux sur ce PC
+Each one is downloaded once, the first time it's used. Removing one frees its space; it's downloaded again if it's needed.	Chacun est téléchargé une fois, la première fois qu'il sert. En retirer un libère sa place ; il est retéléchargé si besoin.
+Open the models folder	Ouvrir le dossier des modèles
+FFmpeg	FFmpeg
+A free video tool, used to put subtitles into videos and to read kinds of file Windows can't. It's downloaded once, the first time it's needed.	Un outil vidéo gratuit, qui sert à mettre des sous-titres dans les vidéos et à lire des fichiers que Windows ne sait pas lire. Téléchargé une fois, la première fois qu'il sert.
+Updates	Mises à jour
+Check for a new KUDUTEXT version when it starts	Rechercher une nouvelle version de KUDUTEXT au démarrage
+Only asks GitHub for the latest version number. Nothing is downloaded without asking.	Demande seulement à GitHub le numéro de la dernière version. Rien n'est téléchargé sans vous le demander.
+FFmpeg {0} is on this PC.	FFmpeg {0} est sur ce PC.
+Not downloaded yet ({0}).	Pas encore téléchargé ({0}).
+It couldn't be removed now (it may be in use). Try again when nothing is being done.	Impossible de le retirer maintenant (il est peut-être utilisé). Réessayez quand rien n'est en cours.
+Get it now	L'obtenir maintenant
+Getting FFmpeg: {0} of {1}	Récupération de FFmpeg : {0} sur {1}
+· on this PC	· sur ce PC
+· not downloaded	· pas téléchargé
+Remove the {0} speech model? It frees {1}, and is downloaded again if it's needed.	Retirer le modèle vocal {0} ? Cela libère {1}, et il est retéléchargé si besoin.
+KUDUTEXT	KUDUTEXT
+Version {0} · Speech to text and subtitles, on your PC	Version {0} · De la parole au texte et aux sous-titres, sur votre PC
+Azeem, with Claude and	Azeem, with Claude and
+Made by	Made by
+Licence	Licence
+MIT · free and open source	MIT · libre et open source
+View	Voir
+Source code	Code source
+Speech engine	Moteur vocal
+whisper.cpp (MIT licence)	whisper.cpp (MIT licence)
+Speech models	Modèles vocaux
+Whisper models by OpenAI (MIT licence), downloaded from Hugging Face the first time	Modèles Whisper d'OpenAI (licence MIT), téléchargés depuis Hugging Face la première fois
+Reading sound	Lecture du son
+NAudio (MIT licence) and Windows' own Media Foundation	NAudio (licence MIT) et Media Foundation, intégré à Windows
+Videos	Vidéos
+FFmpeg (GPL licence), downloaded the first time it's needed	FFmpeg (licence GPL), téléchargé la première fois qu'il sert
+Third-party	Tiers
+Third-party notices	Mentions des tiers
+KUDUTEXT works on your computer only. Your videos and recordings never leave it: the internet is used only to download a speech model and FFmpeg once, and to check for a new version.	KUDUTEXT fonctionne uniquement sur votre ordinateur. Vos vidéos et enregistrements ne le quittent jamais : internet ne sert qu'à télécharger une fois un modèle vocal et FFmpeg, et à rechercher une nouvelle version.
+Check for updates	Rechercher des mises à jour
+Couldn't find any published version yet.	Aucune version publiée trouvée pour l'instant.
+KUDUTEXT {0} is available. Open the download page?	KUDUTEXT {0} est disponible. Ouvrir la page de téléchargement ?
+You have the latest version.	Vous avez la dernière version.
+Couldn't check for updates. Check your internet connection and try again.	Impossible de rechercher les mises à jour. Vérifiez votre connexion internet et réessayez.
+{0} ran into a problem it couldn't get past, and has to close.	{0} a rencontré un problème qu'il n'a pas pu surmonter et doit se fermer.
+Subtitles into the video · {0}	Sous-titres dans la vidéo · {0}
+As subtitles that can be turned on and off	Comme sous-titres qu'on peut activer et désactiver
+Quick, and the picture isn't changed. Most players show them (VLC, Windows Media Player, many TVs); if not, turn them on in the player.	Rapide, et l'image ne change pas. La plupart des lecteurs les affichent (VLC, Windows Media Player, beaucoup de télés) ; sinon, activez-les dans le lecteur.
+Written into the picture	Écrits dans l'image
+Always shown, on any player, phone or website. Takes longer, because the whole video is made again.	Toujours visibles, sur n'importe quel lecteur, téléphone ou site. Plus long, car toute la vidéo est refaite.
+Small	Petite
+Normal	Normale
+Large	Grande
+Size of the words	Taille des mots
+Show the video	Afficher la vidéo
+The new video is saved beside the original, which isn't changed.	La nouvelle vidéo est enregistrée à côté de l'originale, qui ne change pas.
+This uses FFmpeg, a free video tool. It's downloaded once ({0}) when you start.	Cela utilise FFmpeg, un outil vidéo gratuit. Il est téléchargé une fois ({0}) au démarrage.
+The video is being made. Stop it and close?	La vidéo est en cours de création. L'arrêter et fermer ?
+Saved as "{0}" next to the video.	Sera enregistrée sous « {0} » à côté de la vidéo.
+Saved as "{0}" in {1}.	Sera enregistrée sous « {0} » dans {1}.
+Getting FFmpeg, once…	Récupération de FFmpeg, une fois…
+Getting FFmpeg, once: {0} of {1}	Récupération de FFmpeg, une fois : {0} sur {1}
+There's no speech in this file's text, so there are no subtitles to add.	Il n'y a pas de parole dans le texte de ce fichier, donc pas de sous-titres à ajouter.
+{0}.unfinished{1}	{0}.unfinished{1}
+Writing the subtitles into the picture	Écriture des sous-titres dans l'image
+Adding the subtitles	Ajout des sous-titres
+Saved "{0}".	« {0} » enregistré.
+Stopped. Nothing was saved.	Arrêté. Rien n'a été enregistré.
+The video couldn't be made. {0}	La vidéo n'a pas pu être faite. {0}
+The video couldn't be saved: {0}	La vidéo n'a pas pu être enregistrée : {0}
+{0} line	{0} ligne
+{0} lines	{0} lignes
+{0} time	{0} fois
+{0} times	{0} fois
+Videos and recordings	Vidéos et enregistrements
