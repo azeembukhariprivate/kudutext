@@ -223,7 +223,7 @@ namespace Kudutext.Views
             long? previous = null;
             foreach (var r in _rows)
             {
-                r.Problem = TextEdits.Problem(r.Start, r.End, previous);
+                r.Problem = Lang.T(TextEdits.Problem(r.Start, r.End, previous)); // shown in a template row, so put into the language here
                 var s = TextEdits.ParseTime(r.Start);
                 if (s != null) previous = s;
             }
@@ -428,8 +428,8 @@ namespace Kudutext.Views
 
             var play = new FrameworkElementFactory(typeof(Button));
             play.SetResourceReference(StyleProperty, "GhostButton");
-            play.SetValue(ToolTipProperty, "Play this line");
-            play.SetValue(System.Windows.Automation.AutomationProperties.NameProperty, "Play this line");
+            play.SetValue(ToolTipProperty, Lang.T("Play this line"));
+            play.SetValue(System.Windows.Automation.AutomationProperties.NameProperty, Lang.T("Play this line"));
             play.SetValue(MinHeightProperty, 30.0);
             play.SetValue(PaddingProperty, new Thickness(8, 0, 8, 0));
             play.SetValue(VerticalAlignmentProperty, VerticalAlignment.Top);
@@ -480,7 +480,7 @@ namespace Kudutext.Views
             box.SetValue(Grid.ColumnProperty, column);
             box.SetValue(MarginProperty, new Thickness(4, 0, 4, 0));
             box.SetValue(VerticalAlignmentProperty, VerticalAlignment.Top);
-            box.SetValue(System.Windows.Automation.AutomationProperties.NameProperty, name);
+            box.SetValue(System.Windows.Automation.AutomationProperties.NameProperty, Lang.T(name));
             if (time) box.SetResourceReference(FontFamilyProperty, "MonoFont");
             box.SetBinding(TextBox.TextProperty, new Binding(property)
             {
