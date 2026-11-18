@@ -12,7 +12,7 @@
     <Prefer32Bit>false</Prefer32Bit>
     <StartupObject>Kudutext.Program</StartupObject>
 
-    <Version>1.1.1</Version>
+    <Version>1.2.0</Version>
     <Product>KUDUTEXT</Product>
     <Company>Azeem Bukhari</Company>
     <Authors>Azeem Bukhari</Authors>
@@ -33,6 +33,8 @@
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
     <!-- Reading sound from videos and recordings, through Windows' Media Foundation (MIT). -->
     <PackageReference Include="NAudio" Version="2.2.1" />
+    <!-- Runs the voice model that tells speakers apart, on the PC. -->
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.28.0" />
   </ItemGroup>
 
   <ItemGroup>

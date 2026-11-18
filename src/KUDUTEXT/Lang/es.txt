@@ -336,3 +336,24 @@ The video couldn't be saved: {0}	No se pudo guardar el vídeo: {0}
 {0} time	{0} vez
 {0} times	{0} veces
 Videos and recordings	Vídeos y grabaciones
+Finding who speaks	Averiguando quién habla
+Speaker {0}	Persona {0}
+Not a WAV file.	No es un archivo WAV.
+Only 16-bit WAV files are read.	Solo se leen archivos WAV de 16 bits.
+The WAV file has no sound in it.	El archivo WAV no tiene sonido.
+the voice model	el modelo de voces
+Speakers	Personas que hablan
+Add a speaker	Añadir una persona
+Add someone else who speaks, then choose them on their lines	Añade a otra persona que habla y elígela en sus líneas
+Name of speaker {0}	Nombre de la persona {0}
+Who speaks	Quién habla
+Speaker	Persona
+Say who is speaking	Decir quién habla
+Each line is marked Speaker 1, Speaker 2 and so on. You can give them names in Check text.	Cada línea se marca como Persona 1, Persona 2, etc. Puedes darles nombres en Revisar texto.
+Find out how many by itself	Averiguar cuántas por sí mismo
+{0} people speak	Hablan {0} personas
+How many people speak	Cuántas personas hablan
+Getting the voice model that tells speakers apart ({0})	Descargando el modelo de voces que distingue a las personas ({0})
+The voice model wasn't downloaded	El modelo de voces no se descargó
+The voice model couldn't be downloaded	No se pudo descargar el modelo de voces
+The voice model couldn't be saved	No se pudo guardar el modelo de voces

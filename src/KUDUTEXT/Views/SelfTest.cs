@@ -42,6 +42,9 @@ namespace Kudutext.Views
             Settings.Model = SpeechModels.Tiny.Id;
             Settings.Language = "auto";
             Settings.Translate = false;
+            _savedSpeakers = (Settings.FindSpeakers, Settings.SpeakerCount);
+            _samplesFolder = samples;
+            Settings.FindSpeakers = false;
             Settings.Formats = new List<string> { "srt", "txt" };
             Settings.OutputFolder = string.Empty;
 
@@ -87,6 +90,8 @@ namespace Kudutext.Views
         }
 
         private static byte[] _ffmpegZip;
+        private static string _samplesFolder;
+        private static (bool Find, int Count) _savedSpeakers;
 
         private static int Finish(string folder, string models, (string Model, string Language, bool Translate, List<string> Formats, string OutputFolder) saved)
         {
@@ -97,6 +102,8 @@ namespace Kudutext.Views
             Settings.Translate = saved.Translate;
             Settings.Formats = saved.Formats;
             Settings.OutputFolder = saved.OutputFolder;
+            Settings.FindSpeakers = _savedSpeakers.Find;
+            Settings.SpeakerCount = _savedSpeakers.Count;
             _log.AppendLine(Errors.Count == 0 ? "SELF-TEST PASSED" : $"SELF-TEST FAILED ({Errors.Count})");
             foreach (var e in Errors) _log.AppendLine("  " + e);
             try { File.WriteAllText(Path.Combine(Path.GetDirectoryName(AppInfo.ExePath) ?? ".", "self-test.log"), _log.ToString()); }
@@ -239,6 +246,56 @@ namespace Kudutext.Views
                 });
 
                 EditorWindow editor = null;
+                Step("Say who is speaking", () =>
+                {
+                    var wav = Path.Combine(_samplesFolder, "1-two-speakers-en.wav");
+                    var voice = Path.Combine(_samplesFolder, VoiceModel.FileName);
+                    Expect(File.Exists(wav) && File.Exists(voice), "the two-speaker recording and the voice model in --samples");
+                    Expect(Downloads.Sha256Of(voice) == VoiceModel.Sha256, "the voice model's checksum");
+                    server.Add(VoiceModel.FileName, File.ReadAllBytes(voice));
+                    MainWindow.VoiceModelUrlOverride = server.Url(VoiceModel.FileName);
+                    var talk = Path.Combine(_temp, "Two people.wav");
+                    File.Copy(wav, talk);
+                    Settings.FindSpeakers = true;
+                    Settings.SpeakerCount = 2;
+                    try
+                    {
+                        Expect(main.Add(new[] { talk }) == 1, "added");
+                        var j = main.Jobs.Last();
+                        Expect(j.FindSpeakers && j.SpeakerCount == 2, "the job asks for two speakers");
+                        Wait(() => !main.IsBusy, 300);
+                        Expect(VoiceModel.IsReady, "the voice model downloaded and checked");
+                        Expect(j.State == JobState.Done, "done, got " + j.State + " " + j.Error);
+                        var t = Transcript.Load(JobList.TranscriptFile(j));
+                        Note("speakers: " + string.Join(" | ", t.Segments.Select(x => t.SpeakerOf(x) + ": " + x.Text)));
+                        Expect(t.HasSpeakers && t.SpeakerNames.Count == 2, "two speakers, got " + (t.SpeakerNames?.Count ?? 0));
+                        var srt = File.ReadAllText(Path.Combine(_temp, "Two people.srt"));
+                        Expect(srt.Contains("Speaker 1: ") && srt.Contains("Speaker 2: "), "both in the subtitles");
+
+                        var ed = main.OpenEditor(j, modal: false);
+                        OffScreen(ed);
+                        ed.Show();
+                        Pump();
+                        Expect(ed.SpeakerNames.SequenceEqual(new[] { "Speaker 1", "Speaker 2" }), "the speakers listed");
+                        Screenshots.One(ed, "Check the text with speakers");
+                        ed.RenameSpeaker(0, "Ann");
+                        var added = ed.AddSpeaker();
+                        ed.Rows[ed.Rows.Count - 1].Speaker = added;
+                        Expect(ed.IsDirty, "changed");
+                        Expect(ed.Save(), "saved");
+                        ed.Close();
+                        srt = File.ReadAllText(Path.Combine(_temp, "Two people.srt"));
+                        Expect(srt.Contains("Ann: ") && srt.Contains("Speaker 3: ") && !srt.Contains("Speaker 1: "), "names in the subtitles after saving");
+                        Expect(File.ReadAllText(Path.Combine(_temp, "Two people.txt")).Contains("Ann: "), "names in the text file");
+                    }
+                    finally
+                    {
+                        Settings.FindSpeakers = false;
+                        Settings.SpeakerCount = 0;
+                        MainWindow.VoiceModelUrlOverride = null;
+                    }
+                });
+
                 Step("Check and correct the text", () =>
                 {
                     editor = main.OpenEditor(job, modal: false);

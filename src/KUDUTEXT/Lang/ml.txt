@@ -336,3 +336,24 @@ The video couldn't be saved: {0}	വീഡിയോ സേവ് ചെയ്യ
 {0} time	{0} തവണ
 {0} times	{0} തവണ
 Videos and recordings	വീഡിയോകളും റെക്കോർഡിങ്ങുകളും
+Finding who speaks	ആരാണ് സംസാരിക്കുന്നതെന്ന് കണ്ടെത്തുന്നു
+Speaker {0}	സംസാരിക്കുന്നയാൾ {0}
+Not a WAV file.	ഇതൊരു WAV ഫയൽ അല്ല.
+Only 16-bit WAV files are read.	16-ബിറ്റ് WAV ഫയലുകൾ മാത്രമേ വായിക്കൂ.
+The WAV file has no sound in it.	ഈ WAV ഫയലിൽ ശബ്ദമൊന്നുമില്ല.
+the voice model	ശബ്ദ മോഡൽ
+Speakers	സംസാരിക്കുന്നവർ
+Add a speaker	ഒരാളെ ചേർക്കുക
+Add someone else who speaks, then choose them on their lines	സംസാരിക്കുന്ന മറ്റൊരാളെ ചേർക്കുക, എന്നിട്ട് അവരുടെ വരികളിൽ അവരെ തിരഞ്ഞെടുക്കുക
+Name of speaker {0}	സംസാരിക്കുന്നയാൾ {0}-ന്റെ പേര്
+Who speaks	ആര് സംസാരിക്കുന്നു
+Speaker	സംസാരിക്കുന്നയാൾ
+Say who is speaking	ആരാണ് സംസാരിക്കുന്നതെന്ന് പറയുക
+Each line is marked Speaker 1, Speaker 2 and so on. You can give them names in Check text.	ഓരോ വരിയിലും സംസാരിക്കുന്നയാൾ 1, സംസാരിക്കുന്നയാൾ 2 എന്നിങ്ങനെ കാണിക്കും. ടെക്സ്റ്റ് പരിശോധിക്കുക എന്നതിൽ അവർക്ക് പേരുകൾ നൽകാം.
+Find out how many by itself	എത്ര പേരുണ്ടെന്ന് സ്വയം കണ്ടെത്തുക
+{0} people speak	{0} പേർ സംസാരിക്കുന്നു
+How many people speak	എത്ര പേർ സംസാരിക്കുന്നു
+Getting the voice model that tells speakers apart ({0})	സംസാരിക്കുന്നവരെ തിരിച്ചറിയുന്ന ശബ്ദ മോഡൽ എടുക്കുന്നു ({0})
+The voice model wasn't downloaded	ശബ്ദ മോഡൽ ഡൗൺലോഡ് ചെയ്തില്ല
+The voice model couldn't be downloaded	ശബ്ദ മോഡൽ ഡൗൺലോഡ് ചെയ്യാൻ കഴിഞ്ഞില്ല
+The voice model couldn't be saved	ശബ്ദ മോഡൽ സേവ് ചെയ്യാൻ കഴിഞ്ഞില്ല

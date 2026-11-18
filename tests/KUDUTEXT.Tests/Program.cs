@@ -12,7 +12,7 @@ using Kudutext.Core;
 
 namespace Kudutext.Tests
 {
-    public static class Program
+    public static partial class Program
     {
         private static int _failed;
         private static int _passed;

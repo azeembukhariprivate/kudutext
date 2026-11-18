@@ -16,6 +16,15 @@ namespace Kudutext.Core
         [DataMember(Name = "start", Order = 1)] public long StartMs { get; set; }
         [DataMember(Name = "end", Order = 2)] public long EndMs { get; set; }
         [DataMember(Name = "text", Order = 3)] public string Text { get; set; }
+        /// <summary>Who says it: a number into the transcript's speaker names, or -1 when speakers weren't looked for.</summary>
+        [DataMember(Name = "speaker", Order = 4, EmitDefaultValue = false)] public int SpeakerPlusOne { get; set; }
+
+        [IgnoreDataMember]
+        public int Speaker
+        {
+            get => SpeakerPlusOne - 1;
+            set => SpeakerPlusOne = value + 1;
+        }
 
         public TimeSpan Start => TimeSpan.FromMilliseconds(StartMs);
         public TimeSpan End => TimeSpan.FromMilliseconds(EndMs);
@@ -27,8 +36,37 @@ namespace Kudutext.Core
     {
         [DataMember(Name = "language", Order = 1)] public string Language { get; set; }
         [DataMember(Name = "segments", Order = 2)] public List<Segment> Segments { get; set; } = new List<Segment>();
+        /// <summary>The speakers' names ("Speaker 1", or names given in Check text), when speakers were looked for.</summary>
+        [DataMember(Name = "speakers", Order = 3, EmitDefaultValue = false)] public List<string> SpeakerNames { get; set; }
 
-        public string PlainText => string.Join(Environment.NewLine, Segments.Select(s => s.Text));
+        public bool HasSpeakers => SpeakerNames != null && SpeakerNames.Count > 0 && Segments.Any(s => s.Speaker >= 0);
+
+        /// <summary>The name of the speaker of a line, or null.</summary>
+        public string SpeakerOf(Segment s) => HasSpeakers && s.Speaker >= 0 && s.Speaker < SpeakerNames.Count ? SpeakerNames[s.Speaker] : null;
+
+        /// <summary>The words; with speakers, a new paragraph with the name each time someone else speaks.</summary>
+        public string PlainText
+        {
+            get
+            {
+                if (!HasSpeakers) return string.Join(Environment.NewLine, Segments.Select(s => s.Text));
+                var sb = new StringBuilder();
+                string last = null;
+                foreach (var s in Segments)
+                {
+                    var who = SpeakerOf(s);
+                    if (who != last)
+                    {
+                        if (sb.Length > 0) sb.Append(Environment.NewLine).Append(Environment.NewLine);
+                        sb.Append(who ?? "?").Append(": ");
+                        last = who;
+                    }
+                    else sb.Append(' ');
+                    sb.Append(s.Text);
+                }
+                return sb.ToString();
+            }
+        }
 
         public static Transcript Load(string file)
         {
@@ -134,7 +172,8 @@ namespace Kudutext.Core
             {
                 sb.Append(n++).Append("\r\n");
                 sb.Append(Time(s.Start, ',')).Append(" --> ").Append(Time(s.End, ',')).Append("\r\n");
-                sb.Append(s.Text.Replace("\r\n", "\n").Replace("\n", "\r\n")).Append("\r\n\r\n");
+                var who = t.SpeakerOf(s);
+                sb.Append(who == null ? string.Empty : who + ": ").Append(s.Text.Replace("\r\n", "\n").Replace("\n", "\r\n")).Append("\r\n\r\n");
             }
             return sb.ToString();
         }
@@ -145,7 +184,9 @@ namespace Kudutext.Core
             foreach (var s in t.Segments)
             {
                 sb.Append(Time(s.Start, '.')).Append(" --> ").Append(Time(s.End, '.')).Append('\n');
-                // "-->" can't appear in a cue's text.
+                // "-->" can't appear in a cue's text; a speaker goes in WebVTT's own voice tag.
+                var who = t.SpeakerOf(s);
+                if (who != null) sb.Append("<v ").Append(who.Replace(">", string.Empty).Replace("<", string.Empty)).Append('>');
                 sb.Append(s.Text.Replace("-->", "->")).Append("\n\n");
             }
             return sb.ToString();

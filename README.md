@@ -26,6 +26,7 @@
 - **Around 100 languages**, found by itself or chosen by you, and it can **write the text in English** from speech in any language.
 - **Private**: everything happens on your PC. Your videos and recordings never leave it, and after the speech model is downloaded it works without the internet.
 - **Check and correct the text**: go through it line by line with its times, play any line to hear it, fix words or times, split or join lines, and replace a word everywhere at once (handy for names). Saving writes the subtitle and text files again.
+- **Say who is speaking**: for interviews, meetings and talks, each line is marked *Speaker 1*, *Speaker 2* and so on, in the subtitles and the text. KUDUTEXT tells the voices apart by itself, or you say how many people speak. Give them their real names in *Check text*, or move a line to someone else. The voice model (27 MB) is downloaded once, the first time.
 - **Subtitles into the video**: add them as a subtitle track players can turn on and off (quick, the picture isn't changed), or write them into the picture so they always show, on any player, phone or website (small, normal or large words). The new video is saved beside the original. This uses FFmpeg, a free video tool downloaded once (110 MB), the first time.
 - **Never replaces your files**: if a `talk.srt` that KUDUTEXT didn't make is already there, the new one is saved as `talk (2).srt`.
 - **In your language**: English, Malayalam (മലയാളം), Hindi (हिन्दी), Spanish, French and Arabic (with the windows mirrored for right-to-left). KUDUTEXT starts in the same language as Windows when it has it; choose another in Settings. (This is the language of KUDUTEXT itself; the speech it listens to can be any of its 100 languages.)
@@ -44,7 +45,7 @@ You can also start it from a command line with files to add: `KUDUTEXT.exe talk.
 
 ## Privacy
 
-KUDUTEXT works on your computer only. It uses the internet for three things: downloading a speech model the first time it's needed (from Hugging Face, where whisper.cpp publishes them), downloading FFmpeg the first time a video needs it, and an optional check for a newer version on GitHub, which can be turned off in Settings. Each download is checked against a checksum before it's kept. Your videos, recordings and their text never leave your PC.
+KUDUTEXT works on your computer only. It uses the internet for four things: downloading a speech model the first time it's needed (from Hugging Face, where whisper.cpp publishes them), downloading the voice model the first time you ask who is speaking (from GitHub, where the sherpa-onnx project publishes it), downloading FFmpeg the first time a video needs it, and an optional check for a newer version on GitHub, which can be turned off in Settings. Each download is checked against a checksum before it's kept. Your videos, recordings and their text never leave your PC.
 
 ## Build from source
 

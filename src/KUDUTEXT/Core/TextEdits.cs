@@ -89,6 +89,19 @@ namespace Kudutext.Core
             return null;
         }
 
+        /// <summary>The lines as they'll be saved, each with its speaker, and the speakers' names (lines with no words are left out).</summary>
+        public static Transcript Build(string language, IEnumerable<(long Start, long End, string Text, int Speaker)> lines, List<string> speakerNames)
+        {
+            var t = new Transcript
+            {
+                Language = language,
+                Segments = lines.Where(l => !string.IsNullOrWhiteSpace(l.Text))
+                    .Select(l => new Segment { StartMs = l.Start, EndMs = l.End, Text = l.Text.Trim(), Speaker = speakerNames == null ? -1 : l.Speaker }).ToList(),
+                SpeakerNames = speakerNames?.Count > 0 ? speakerNames.ToList() : null
+            };
+            return t;
+        }
+
         /// <summary>The lines as they'll be saved: lines with no words are left out.</summary>
         public static Transcript Build(string language, IEnumerable<(long Start, long End, string Text)> lines) => new Transcript
         {

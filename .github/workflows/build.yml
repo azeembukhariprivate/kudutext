@@ -102,6 +102,19 @@ jobs:
         shell: pwsh
         run: Copy-Item -Recurse engine-build/engine out/KUDUTEXT/engine
 
+      - name: Voice model and a two-person recording (for the self-test only)
+        shell: pwsh
+        run: |
+          # For "say who is speaking": the voice model and a recording of two people, from the sherpa-onnx project's releases.
+          $rel = "https://github.com/k2-fsa/sherpa-onnx/releases/download"
+          foreach ($f in @(
+              @{ Url = "$rel/speaker-recongition-models/wespeaker_en_voxceleb_resnet34_LM.onnx"; Sha = "e9848563da86f263117134dfd7ad63c92355b37de492b55e325400c9d9c39012" },
+              @{ Url = "$rel/speaker-segmentation-models/1-two-speakers-en.wav"; Sha = "f1c877dc01595e28be7147bf2fe38e5268147a868bf3fdb5c37b97f5940e21f3" })) {
+            $out = "engine-build/samples/" + ($f.Url -split "/")[-1]
+            Invoke-WebRequest $f.Url -OutFile $out
+            if ((Get-FileHash $out -Algorithm SHA256).Hash -ne $f.Sha) { Write-Host "Wrong checksum: $out"; exit 1 }
+          }
+
       - name: Smallest speech model from the cache (for the self-test only)
         id: tiny
         uses: actions/cache@v5

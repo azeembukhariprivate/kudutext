@@ -20,12 +20,15 @@ namespace Kudutext.Views
     {
         private string _start, _end, _text, _problem;
         private bool _playing;
+        private int _speaker = -1;
 
         public string Start { get => _start; set => Set(ref _start, value); }
         public string End { get => _end; set => Set(ref _end, value); }
         public string Text { get => _text; set => Set(ref _text, value); }
         public string Problem { get => _problem; set => Set(ref _problem, value, false); }
         public bool Playing { get => _playing; set => Set(ref _playing, value, false); }
+        /// <summary>Who speaks the line (an index into the window's speakers), -1 when nobody was looked for.</summary>
+        public int Speaker { get => _speaker; set => Set(ref _speaker, value); }
 
         public long StartMs => TextEdits.ParseTime(Start) ?? 0;
         public long EndMs => TextEdits.ParseTime(End) ?? StartMs;
@@ -42,6 +45,26 @@ namespace Kudutext.Views
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
             if (edit) Edited?.Invoke();
         }
+    }
+
+    /// <summary>A speaker's name while the text is checked (renaming it changes every line of theirs at once).</summary>
+    public sealed class SpeakerName : INotifyPropertyChanged
+    {
+        private string _name;
+        public string Name
+        {
+            get => _name;
+            set
+            {
+                if (_name == value) return;
+                _name = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Name)));
+                Renamed?.Invoke();
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        public event Action Renamed;
     }
 
     /// <summary>
@@ -61,6 +84,9 @@ namespace Kudutext.Views
         private readonly Border _note;
         private readonly TextBlock _noteText = Ui.Text(string.Empty, 12.5, wrap: true);
         private readonly LinePlayer _player = new LinePlayer();
+        private readonly ObservableCollection<SpeakerName> _speakers = new ObservableCollection<SpeakerName>();
+        private readonly WrapPanel _speakerBoxes = new WrapPanel();
+        private readonly bool _hasSpeakers;
         private TextBox _lastText;
         private bool _dirty;
         private bool _loading;
@@ -75,6 +101,7 @@ namespace Kudutext.Views
         {
             _job = job;
             _original = Transcript.Load(JobList.TranscriptFile(job));
+            _hasSpeakers = _original.HasSpeakers;
             Width = 1000;
             Height = 740;
             MinWidth = 760;
@@ -109,7 +136,19 @@ namespace Kudutext.Views
             {
                 if (e.Key == Key.Enter) FindNext();
             };
-            root.Children.Add(tools.At(1));
+            if (_hasSpeakers)
+            {
+                // Who speaks: a box per speaker to give them a name, and one to add a speaker the voice check missed.
+                var who = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 4, 0, 0) };
+                who.Children.Add(Ui.Text("Speakers", 12.5).Margin(0, 4, 8, 6));
+                who.Children.Add(_speakerBoxes);
+                who.Children.Add(Ui.Small(Ui.Button("Add a speaker", "IconPlus", "SecondaryButton", (s, e) => AddSpeaker())).Tip("Add someone else who speaks, then choose them on their lines").Margin(0, 0, 0, 6));
+                var both = new StackPanel();
+                both.Children.Add(tools);
+                both.Children.Add(who);
+                root.Children.Add(both.At(1));
+            }
+            else root.Children.Add(tools.At(1));
 
             // ---- a note (what was replaced, why it can't be saved yet, playing problems)
             _note = Ui.Banner("IconInfo", _noteText);
@@ -194,11 +233,46 @@ namespace Kudutext.Views
             }
         }
 
+        /// <summary>The speakers' names as they are now (empty when speakers weren't looked for).</summary>
+        public IList<string> SpeakerNames => _speakers.Select((n, i) => string.IsNullOrWhiteSpace(n.Name) ? Speakers.DefaultName(i) : n.Name.Trim()).ToList();
+
+        public void RenameSpeaker(int index, string name) => _speakers[index].Name = name;
+
+        public int AddSpeaker()
+        {
+            if (!_hasSpeakers) return -1;
+            AddSpeakerBox(Speakers.DefaultName(_speakers.Count));
+            Changed();
+            return _speakers.Count - 1;
+        }
+
+        private void AddSpeakerBox(string name)
+        {
+            var speaker = new SpeakerName { Name = name };
+            speaker.Renamed += () =>
+            {
+                if (_loading) return;
+                Changed();
+            };
+            _speakers.Add(speaker);
+            var box = new TextBox { Width = 130, Text = name };
+            System.Windows.Automation.AutomationProperties.SetName(box, Lang.T("Name of speaker {0}", _speakers.Count));
+            box.TextChanged += (s, e) => speaker.Name = box.Text;
+            _speakerBoxes.Children.Add(box.Margin(0, 0, 6, 6));
+        }
+
         private void Load(Transcript t)
         {
             _loading = true;
             _rows.Clear();
-            foreach (var s in t.Segments) _rows.Add(NewRow(s.StartMs, s.EndMs, s.Text));
+            if (_hasSpeakers && _speakers.Count == 0)
+                foreach (var name in t.SpeakerNames) AddSpeakerBox(name);
+            foreach (var s in t.Segments)
+            {
+                var row = NewRow(s.StartMs, s.EndMs, s.Text);
+                row.Speaker = _hasSpeakers ? Math.Max(0, s.Speaker) : -1;
+                _rows.Add(row);
+            }
             _loading = false;
             CheckProblems();
             _dirty = false;
@@ -270,7 +344,9 @@ namespace Kudutext.Views
             var index = _rows.IndexOf(row);
             row.Text = first;
             row.End = TextEdits.ShowTime(middle);
-            _rows.Insert(index + 1, NewRow(middle, end, second));
+            var after = NewRow(middle, end, second);
+            after.Speaker = row.Speaker;
+            _rows.Insert(index + 1, after);
             Changed();
             Selected = index + 1;
             ShowNote(null);
@@ -386,7 +462,8 @@ namespace Kudutext.Views
                 UpdateStatus();
                 return false;
             }
-            var t = TextEdits.Build(_original.Language, _rows.Select(r => (r.StartMs, r.EndMs, r.Text ?? string.Empty)));
+            var t = TextEdits.Build(_original.Language, _rows.Select(r => (r.StartMs, r.EndMs, r.Text ?? string.Empty, r.Speaker)),
+                _hasSpeakers ? SpeakerNames.ToList() : null);
             try
             {
                 t.Save(JobList.TranscriptFile(_job));
@@ -413,7 +490,7 @@ namespace Kudutext.Views
         {
             var grid = new FrameworkElementFactory(typeof(Grid));
             grid.SetValue(MarginProperty, new Thickness(6, 6, 6, 6));
-            foreach (var w in new[] { GridLength.Auto, new GridLength(118), new GridLength(118), new GridLength(1, GridUnitType.Star) })
+            foreach (var w in new[] { GridLength.Auto, new GridLength(118), new GridLength(118), new GridLength(_hasSpeakers ? 150 : 0), new GridLength(1, GridUnitType.Star) })
             {
                 var c = new FrameworkElementFactory(typeof(ColumnDefinition));
                 c.SetValue(ColumnDefinition.WidthProperty, w);
@@ -450,7 +527,19 @@ namespace Kudutext.Views
 
             grid.AppendChild(Box("Start", 1, "Start", true));
             grid.AppendChild(Box("End", 2, "End", true));
-            var text = Box("Text", 3, "Words", false);
+            if (_hasSpeakers)
+            {
+                var who = new FrameworkElementFactory(typeof(ComboBox));
+                who.SetValue(Grid.ColumnProperty, 3);
+                who.SetValue(MarginProperty, new Thickness(4, 0, 4, 0));
+                who.SetValue(VerticalAlignmentProperty, VerticalAlignment.Top);
+                who.SetValue(ItemsControl.DisplayMemberPathProperty, "Name");
+                who.SetValue(System.Windows.Automation.AutomationProperties.NameProperty, Lang.T("Who speaks"));
+                who.SetValue(ItemsControl.ItemsSourceProperty, _speakers);
+                who.SetBinding(System.Windows.Controls.Primitives.Selector.SelectedIndexProperty, new Binding("Speaker") { Mode = BindingMode.TwoWay });
+                grid.AppendChild(who);
+            }
+            var text = Box("Text", 4, "Words", false);
             text.SetValue(TextBox.TextWrappingProperty, TextWrapping.Wrap);
             text.SetValue(TextBox.AcceptsReturnProperty, true);
             text.SetValue(TagProperty, "text");
@@ -459,7 +548,7 @@ namespace Kudutext.Views
             var problem = new FrameworkElementFactory(typeof(TextBlock));
             problem.SetValue(Grid.RowProperty, 1);
             problem.SetValue(Grid.ColumnProperty, 1);
-            problem.SetValue(Grid.ColumnSpanProperty, 3);
+            problem.SetValue(Grid.ColumnSpanProperty, 4);
             problem.SetValue(TextBlock.FontSizeProperty, 12.0);
             problem.SetValue(MarginProperty, new Thickness(4, 4, 0, 0));
             problem.SetResourceReference(TextBlock.ForegroundProperty, "BadText");

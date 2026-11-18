@@ -78,6 +78,33 @@ namespace Kudutext.Core
         }
     }
 
+    /// <summary>
+    /// The voice model that tells speakers apart: WeSpeaker's ResNet34 trained on VoxCeleb (Apache-2.0), as published by the
+    /// sherpa-onnx project (Apache-2.0) on GitHub. Downloaded once into the models folder, kept only when its SHA-256 matches.
+    /// </summary>
+    public static class VoiceModel
+    {
+        public const string FileName = "wespeaker_en_voxceleb_resnet34_LM.onnx";
+        public const string Url = "https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-recongition-models/" + FileName;
+        public const long Size = 26530550;
+        public const string Sha256 = "e9848563da86f263117134dfd7ad63c92355b37de492b55e325400c9d9c39012";
+
+        public static string PathOf => System.IO.Path.Combine(SpeechModels.Folder, FileName);
+
+        public static bool IsReady => File.Exists(PathOf) && File.Exists(PathOf + ".ok") && File.ReadAllText(PathOf + ".ok").Trim() == Sha256;
+
+        public static async Task Download(HttpClient http, Action<long, long> progress, CancellationToken cancel, string url = null)
+        {
+            Directory.CreateDirectory(SpeechModels.Folder);
+            var part = PathOf + ".part";
+            await Downloads.Fetch(http, url ?? Url, part, Size, p => string.Equals(Downloads.Sha256Of(p), Sha256, StringComparison.OrdinalIgnoreCase),
+                "the voice model", progress, cancel).ConfigureAwait(false);
+            if (File.Exists(PathOf)) File.Delete(PathOf);
+            File.Move(part, PathOf);
+            File.WriteAllText(PathOf + ".ok", Sha256);
+        }
+    }
+
     public sealed class DownloadFailedException : Exception
     {
         public DownloadFailedException(string message) : base(message)

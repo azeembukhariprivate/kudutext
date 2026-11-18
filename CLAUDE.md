@@ -81,8 +81,17 @@ Versions below 1.0 were built and tested by CI but never released.
 - The speech engine is whisper.cpp 1.9.5 built from source in CI (pinned commit, all CPU variants, no OpenMP) with the
   Visual C++ runtime DLLs copied next to it; it isn't in git. The self-test gets the tiny model (SHA-1 checked) and
   whisper.cpp's `samples/jfk.mp3`.
-- Nothing about the user is sent anywhere. The internet is used only for the model and FFmpeg downloads and the update check.
+- Nothing about the user is sent anywhere. The internet is used only for the speech model, voice model and FFmpeg downloads and the update check.
 - To move to a newer FFmpeg, change `Ffmpeg.Package` (version, URL, size, SHA-256) and the workflow's self-test download.
+- Who is speaking (1.2): `Core/Speakers.cs`: `Fbank` (Kaldi's 80 bands every 10 ms, Hamming window, each band less its
+  average; checked against a numpy version in the tests), `OnnxVoicePrints` (WeSpeaker ResNet34 via ONNX Runtime, 256
+  numbers per line, `VoiceModel` in `SpeechModels.cs`: from sherpa-onnx's GitHub releases, SHA-256 checked), and
+  `Speakers.Assign` (the middle of each line, at most 10 s; lines under 0.6 s take the nearest line's speaker; grouped by
+  average likeness, `SameVoice` 0.25, or into the number asked for; numbered in the order they first speak). `Runner`
+  does it after listening (`Job.FindSpeakers`, `SpeakerCount`) and keeps the text if it fails. The transcript keeps
+  `speakers` (names) and each line's `speaker`; SRT gets "Name: ", VTT `<v Name>`, TXT a paragraph per speaker. Check
+  text has a speaker per line and renames them. The tests download the model and two recordings with known speakers
+  into `tests/KUDUTEXT.Tests/samples-cache` (never commit them).
 - Other languages (1.1): the shared `Lang`/`LangUi` (kudu-common) put each window into the chosen language as it's shown
   (kept as `AppLanguage`; `Language` is the speech language). Texts are in `src/KUDUTEXT/Lang/<code>.txt`, made and
   checked with kudu-common's `tools/lang.py`; the names of the 100 speech languages stay in English. When adding or

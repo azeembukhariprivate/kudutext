@@ -29,3 +29,6 @@ Thumbs.db
 
 # Editors
 .vscode/
+
+# Test downloads
+tests/KUDUTEXT.Tests/samples-cache/

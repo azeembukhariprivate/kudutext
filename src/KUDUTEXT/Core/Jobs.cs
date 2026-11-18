@@ -35,6 +35,9 @@ namespace Kudutext.Core
         [DataMember(Name = "heard", Order = 11, EmitDefaultValue = false)] public string Heard { get; set; }
         /// <summary>How many lines of speech were found, once done.</summary>
         [DataMember(Name = "lines", Order = 12, EmitDefaultValue = false)] public int Lines { get; set; }
+        /// <summary>Say who is speaking; how many speakers there are (0: find out).</summary>
+        [DataMember(Name = "speakers", Order = 13, EmitDefaultValue = false)] public bool FindSpeakers { get; set; }
+        [DataMember(Name = "speakerCount", Order = 14, EmitDefaultValue = false)] public int SpeakerCount { get; set; }
 
         /// <summary>How far it's got, 0 to 100 (while working; not saved).</summary>
         [IgnoreDataMember] public int Percent { get; set; }

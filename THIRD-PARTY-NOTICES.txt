@@ -105,3 +105,22 @@ This build is licensed under the GNU General Public License version 3.
 https://ffmpeg.org/
 https://www.gyan.dev/ffmpeg/builds/
 Source code: https://github.com/FFmpeg/FFmpeg/commit/946fcce07b
+
+6. ONNX Runtime 1.28.0 (Microsoft.ML.OnnxRuntime)
+-------------------------------------------------
+Runs the voice model that tells speakers apart. Files: Microsoft.ML.OnnxRuntime.dll,
+onnxruntime.dll, onnxruntime_providers_shared.dll.
+MIT License. Copyright (c) Microsoft Corporation.
+https://github.com/microsoft/onnxruntime
+
+7. WeSpeaker voice model (wespeaker_en_voxceleb_resnet34_LM.onnx)
+----------------------------------------------------------------
+Not installed with KUDUTEXT: downloaded the first time "Say who is speaking" is
+used, from the sherpa-onnx project's releases on GitHub, and checked against the
+SHA-256 checksum written in KUDUTEXT. The model was trained by the WeSpeaker
+project on the VoxCeleb recordings.
+Apache License 2.0. Copyright WeSpeaker authors; sherpa-onnx (Copyright Xiaomi
+Corporation) for the ONNX version.
+https://github.com/wenet-e2e/wespeaker
+https://github.com/k2-fsa/sherpa-onnx
+https://www.apache.org/licenses/LICENSE-2.0

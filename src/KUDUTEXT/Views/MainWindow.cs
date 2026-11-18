@@ -54,6 +54,7 @@ namespace Kudutext.Views
 
         /// <summary>For the self-test: where the speech model is downloaded from instead of the usual address.</summary>
         public static string ModelUrlOverride { get; set; }
+        public static string VoiceModelUrlOverride { get; set; }
 
         /// <summary>For the self-test: close without asking.</summary>
         public bool SkipClosePrompt { get; set; }
@@ -72,7 +73,11 @@ namespace Kudutext.Views
             _runner = new Runner
             {
                 Decode = AudioReader.Convert,
-                Transcribe = (model, audio, language, translate, progress, cancel) => Whisper.Run(EnginePath, model, audio, language, translate, progress, cancel)
+                Transcribe = (model, audio, language, translate, progress, cancel) => Whisper.Run(EnginePath, model, audio, language, translate, progress, cancel),
+                FindSpeakers = (t, samples, count, progress, cancel) =>
+                {
+                    using (var voices = new OnnxVoicePrints(VoiceModel.PathOf)) Speakers.Assign(t, samples, voices, count, progress, cancel);
+                }
             };
             Whisper.SafePath = AudioReader.ShortPath;
             _jobs = JobList.Load();
@@ -218,6 +223,25 @@ namespace Kudutext.Views
             translate.ToolTip = "Speech in any language becomes English text";
             translate.Click += (s, e) => Settings.Translate = translate.IsChecked == true;
             left.Children.Add(translate);
+            var speakers = new CheckBox { Content = "Say who is speaking", IsChecked = Settings.FindSpeakers, Margin = new Thickness(0, 6, 0, 0) };
+            speakers.ToolTip = "Each line is marked Speaker 1, Speaker 2 and so on. You can give them names in Check text.";
+            var howMany = new ComboBox { Width = 230, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(22, 4, 0, 0), DisplayMemberPath = "Value", SelectedValuePath = "Key" };
+            howMany.ItemsSource = new[] { new KeyValuePair<int, string>(0, Lang.T("Find out how many by itself")) }
+                .Concat(Enumerable.Range(2, 5).Select(n => new KeyValuePair<int, string>(n, Lang.T("{0} people speak", n)))).ToList();
+            System.Windows.Automation.AutomationProperties.SetName(howMany, "How many people speak");
+            howMany.SelectedValue = Settings.SpeakerCount;
+            howMany.IsEnabled = Settings.FindSpeakers;
+            howMany.SelectionChanged += (s, e) =>
+            {
+                if (howMany.SelectedValue is int n) Settings.SpeakerCount = n;
+            };
+            speakers.Click += (s, e) =>
+            {
+                Settings.FindSpeakers = speakers.IsChecked == true;
+                howMany.IsEnabled = Settings.FindSpeakers;
+            };
+            left.Children.Add(speakers);
+            left.Children.Add(howMany);
             grid.Children.Add(left.At(0, 0));
 
             // Right: what to save and where.
@@ -310,7 +334,8 @@ namespace Kudutext.Views
             {
                 // A file already waiting or being done isn't added twice.
                 if (_jobs.Any(j => string.Equals(j.File, file, StringComparison.OrdinalIgnoreCase) && (j.State == JobState.Waiting || j.State == JobState.Working))) continue;
-                var job = new Job { File = file, Model = SpeechModels.Find(Settings.Model).Id, Language = Settings.Language, Translate = Settings.Translate };
+                var job = new Job { File = file, Model = SpeechModels.Find(Settings.Model).Id, Language = Settings.Language, Translate = Settings.Translate,
+                    FindSpeakers = Settings.FindSpeakers, SpeakerCount = Settings.SpeakerCount };
                 _jobs.Add(job);
                 AddRow(job);
                 added++;
@@ -358,6 +383,8 @@ namespace Kudutext.Views
             job.Model = SpeechModels.Find(Settings.Model).Id;
             job.Language = Settings.Language;
             job.Translate = Settings.Translate;
+            job.FindSpeakers = Settings.FindSpeakers;
+            job.SpeakerCount = Settings.SpeakerCount;
             Refresh(job);
             JobList.Save(_jobs);
             Pump();
@@ -459,6 +486,7 @@ namespace Kudutext.Views
                     if (job == null) break;
                     var model = SpeechModels.Find(job.Model);
                     if (!SpeechModels.IsReady(model) && !await GetModel(model)) break;
+                    if (job.FindSpeakers && !VoiceModel.IsReady && !await GetVoiceModel()) break;
                     if (_closing || _stopAll) break;
                     if (!File.Exists(EnginePath))
                     {
@@ -489,10 +517,26 @@ namespace Kudutext.Views
         }
 
         /// <summary>Downloads a speech model, showing how far it's got. False when it was stopped or failed.</summary>
-        private async Task<bool> GetModel(SpeechModel model)
+        private Task<bool> GetModel(SpeechModel model) => GetFile(
+            $"Getting the {model.Name} speech model ({Format.Size(model.Size)})",
+            $"The {model.Name} speech model wasn't downloaded",
+            $"The {model.Name} speech model couldn't be downloaded",
+            $"The {model.Name} speech model couldn't be saved",
+            (http, progress, cancel) => SpeechModels.Download(http, model, progress, cancel, ModelUrlOverride));
+
+        /// <summary>Downloads the voice model that tells speakers apart. False when it was stopped or failed.</summary>
+        private Task<bool> GetVoiceModel() => GetFile(
+            $"Getting the voice model that tells speakers apart ({Format.Size(VoiceModel.Size)})",
+            "The voice model wasn't downloaded",
+            "The voice model couldn't be downloaded",
+            "The voice model couldn't be saved",
+            (http, progress, cancel) => VoiceModel.Download(http, progress, cancel, VoiceModelUrlOverride));
+
+        private async Task<bool> GetFile(string title, string stopped, string failed, string notSaved,
+            Func<HttpClient, Action<long, long>, CancellationToken, Task> download)
         {
             _downloadCancel = new CancellationTokenSource();
-            _bannerTitle.Text = $"Getting the {model.Name} speech model ({Format.Size(model.Size)})";
+            _bannerTitle.Text = title;
             _bannerText.Text = "This happens once. After that everything works without the internet, and your files never leave this PC.";
             _bannerBar.Value = 0;
             _bannerBar.Visibility = Visibility.Visible;
@@ -513,7 +557,7 @@ namespace Kudutext.Views
                     http.DefaultRequestHeaders.UserAgent.ParseAdd(AppInfo.Name + "/" + AppInfo.VersionText);
                     try
                     {
-                        await SpeechModels.Download(http, model, (done, total) =>
+                        await download(http, (done, total) =>
                         {
                             if (startBytes < 0) startBytes = done;
                             var now = DateTime.UtcNow;
@@ -526,7 +570,7 @@ namespace Kudutext.Views
                                 _bannerBar.Value = total > 0 ? done * 1000.0 / total : 0;
                                 _bannerText.Text = $"{Format.Size(done)} of {Format.Size(total)} · {Format.Speed(speed)}. This happens once; after that it all works without the internet.";
                             }));
-                        }, _downloadCancel.Token, ModelUrlOverride);
+                        }, _downloadCancel.Token);
                     }
                     finally
                     {
@@ -540,17 +584,17 @@ namespace Kudutext.Views
             catch (OperationCanceledException)
             {
                 if (_closing) return false;
-                ShowBannerError($"The {model.Name} speech model wasn't downloaded", "It carries on from where it stopped when you try again.");
+                ShowBannerError(stopped, "It carries on from where it stopped when you try again.");
                 return false;
             }
             catch (DownloadFailedException ex)
             {
-                ShowBannerError($"The {model.Name} speech model couldn't be downloaded", ex.Message);
+                ShowBannerError(failed, ex.Message);
                 return false;
             }
             catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
             {
-                ShowBannerError($"The {model.Name} speech model couldn't be saved", ex.Message);
+                ShowBannerError(notSaved, ex.Message);
                 return false;
             }
             finally

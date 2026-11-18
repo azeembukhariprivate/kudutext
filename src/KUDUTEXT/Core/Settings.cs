@@ -89,6 +89,20 @@ namespace Kudutext.Core
             set => SetBool("Translate", value);
         }
 
+        /// <summary>Whether to say who is speaking on each line.</summary>
+        public static bool FindSpeakers
+        {
+            get => GetBool("FindSpeakers", false);
+            set => SetBool("FindSpeakers", value);
+        }
+
+        /// <summary>How many people speak: 0 finds out by itself, else 2 to 6.</summary>
+        public static int SpeakerCount
+        {
+            get { var v = GetInt("SpeakerCount", 0); return v >= 2 && v <= 6 ? v : 0; }
+            set => Set("SpeakerCount", value.ToString());
+        }
+
         /// <summary>What to save: any of "srt", "vtt", "txt", comma-separated.</summary>
         public static List<string> Formats
         {

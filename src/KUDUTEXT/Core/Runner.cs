@@ -26,8 +26,12 @@ namespace Kudutext.Core
 
         public delegate Task<Transcript> TranscribeFn(string model, string audio, string language, bool translate, Action<int> progress, CancellationToken cancel);
 
+        /// <summary>Gives each line a speaker (the voice model, or a stand-in in the tests).</summary>
+        public delegate void SpeakersFn(Transcript t, float[] samples, int count, Action<int> progress, CancellationToken cancel);
+
         public DecodeFn Decode { get; set; }
         public TranscribeFn Transcribe { get; set; }
+        public SpeakersFn FindSpeakers { get; set; }
 
         public static string WorkFolder => Path.Combine(JobList.Folder, "Work");
 
@@ -71,6 +75,24 @@ namespace Kudutext.Core
                     changed?.Invoke();
                 }, cancel).ConfigureAwait(false);
                 cancel.ThrowIfCancellationRequested();
+
+                if (job.FindSpeakers && FindSpeakers != null && audio == wav && File.Exists(wav))
+                {
+                    job.Step = "Finding who speaks";
+                    changed?.Invoke();
+                    try
+                    {
+                        var samples = await Task.Run(() => Wav.Read(wav, out _), cancel).ConfigureAwait(false);
+                        await Task.Run(() => FindSpeakers(t, samples, job.SpeakerCount, p => changed?.Invoke(), cancel), cancel).ConfigureAwait(false);
+                    }
+                    catch (Exception ex) when (!(ex is OperationCanceledException))
+                    {
+                        // The text is still good without speakers.
+                        t.SpeakerNames = null;
+                        foreach (var s in t.Segments) s.Speaker = -1;
+                    }
+                    cancel.ThrowIfCancellationRequested();
+                }
 
                 job.Step = "Saving";
                 changed?.Invoke();

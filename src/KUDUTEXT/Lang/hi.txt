@@ -336,3 +336,24 @@ The video couldn't be saved: {0}	वीडियो सहेजा नहीं
 {0} time	{0} बार
 {0} times	{0} बार
 Videos and recordings	वीडियो और रिकॉर्डिंग
+Finding who speaks	पता लगा रहे हैं कि कौन बोल रहा है
+Speaker {0}	वक्ता {0}
+Not a WAV file.	यह WAV फ़ाइल नहीं है।
+Only 16-bit WAV files are read.	केवल 16-बिट WAV फ़ाइलें पढ़ी जाती हैं।
+The WAV file has no sound in it.	इस WAV फ़ाइल में कोई आवाज़ नहीं है।
+the voice model	आवाज़ मॉडल
+Speakers	वक्ता
+Add a speaker	वक्ता जोड़ें
+Add someone else who speaks, then choose them on their lines	किसी और बोलने वाले को जोड़ें, फिर उनकी पंक्तियों पर उन्हें चुनें
+Name of speaker {0}	वक्ता {0} का नाम
+Who speaks	कौन बोल रहा है
+Speaker	वक्ता
+Say who is speaking	बताएँ कि कौन बोल रहा है
+Each line is marked Speaker 1, Speaker 2 and so on. You can give them names in Check text.	हर पंक्ति पर वक्ता 1, वक्ता 2 आदि लिखा जाता है। आप टेक्स्ट जाँचें में उन्हें नाम दे सकते हैं।
+Find out how many by itself	कितने लोग हैं, यह खुद पता करें
+{0} people speak	{0} लोग बोलते हैं
+How many people speak	कितने लोग बोलते हैं
+Getting the voice model that tells speakers apart ({0})	वक्ताओं को अलग पहचानने वाला आवाज़ मॉडल लाया जा रहा है ({0})
+The voice model wasn't downloaded	आवाज़ मॉडल डाउनलोड नहीं हुआ
+The voice model couldn't be downloaded	आवाज़ मॉडल डाउनलोड नहीं हो सका
+The voice model couldn't be saved	आवाज़ मॉडल सहेजा नहीं जा सका

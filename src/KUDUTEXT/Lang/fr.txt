@@ -336,3 +336,24 @@ The video couldn't be saved: {0}	La vidéo n'a pas pu être enregistrée : {0}
 {0} time	{0} fois
 {0} times	{0} fois
 Videos and recordings	Vidéos et enregistrements
+Finding who speaks	Recherche de qui parle
+Speaker {0}	Personne {0}
+Not a WAV file.	Ce n'est pas un fichier WAV.
+Only 16-bit WAV files are read.	Seuls les fichiers WAV 16 bits sont lus.
+The WAV file has no sound in it.	Le fichier WAV ne contient aucun son.
+the voice model	le modèle de voix
+Speakers	Personnes qui parlent
+Add a speaker	Ajouter une personne
+Add someone else who speaks, then choose them on their lines	Ajoutez une autre personne qui parle, puis choisissez-la sur ses lignes
+Name of speaker {0}	Nom de la personne {0}
+Who speaks	Qui parle
+Speaker	Personne
+Say who is speaking	Dire qui parle
+Each line is marked Speaker 1, Speaker 2 and so on. You can give them names in Check text.	Chaque ligne est marquée Personne 1, Personne 2, etc. Vous pouvez leur donner un nom dans Vérifier le texte.
+Find out how many by itself	Trouver combien tout seul
+{0} people speak	{0} personnes parlent
+How many people speak	Combien de personnes parlent
+Getting the voice model that tells speakers apart ({0})	Téléchargement du modèle de voix qui distingue les personnes ({0})
+The voice model wasn't downloaded	Le modèle de voix n'a pas été téléchargé
+The voice model couldn't be downloaded	Le modèle de voix n'a pas pu être téléchargé
+The voice model couldn't be saved	Le modèle de voix n'a pas pu être enregistré

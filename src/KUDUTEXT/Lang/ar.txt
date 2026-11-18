@@ -336,3 +336,24 @@ The video couldn't be saved: {0}	تعذّر حفظ الفيديو: {0}
 {0} time	{0} مرة
 {0} times	{0} مرات
 Videos and recordings	مقاطع فيديو وتسجيلات
+Finding who speaks	جارٍ معرفة من يتحدث
+Speaker {0}	المتحدث {0}
+Not a WAV file.	هذا ليس ملف WAV.
+Only 16-bit WAV files are read.	تُقرأ ملفات WAV بدقة 16 بت فقط.
+The WAV file has no sound in it.	لا يوجد صوت في ملف WAV.
+the voice model	نموذج الأصوات
+Speakers	المتحدثون
+Add a speaker	إضافة متحدث
+Add someone else who speaks, then choose them on their lines	أضف شخصًا آخر يتحدث، ثم اختره في سطوره
+Name of speaker {0}	اسم المتحدث {0}
+Who speaks	من يتحدث
+Speaker	المتحدث
+Say who is speaking	ذكر من يتحدث
+Each line is marked Speaker 1, Speaker 2 and so on. You can give them names in Check text.	يُعلَّم كل سطر بالمتحدث 1 والمتحدث 2 وهكذا. يمكنك تسميتهم في مراجعة النص.
+Find out how many by itself	معرفة العدد تلقائيًا
+{0} people speak	يتحدث {0} أشخاص
+How many people speak	كم شخصًا يتحدث
+Getting the voice model that tells speakers apart ({0})	جارٍ تنزيل نموذج الأصوات الذي يميّز المتحدثين ({0})
+The voice model wasn't downloaded	لم يُنزَّل نموذج الأصوات
+The voice model couldn't be downloaded	تعذّر تنزيل نموذج الأصوات
+The voice model couldn't be saved	تعذّر حفظ نموذج الأصوات
