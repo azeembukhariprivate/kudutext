@@ -343,14 +343,14 @@ Only 16-bit WAV files are read.	16-ബിറ്റ് WAV ഫയലുകൾ മ
 The WAV file has no sound in it.	ഈ WAV ഫയലിൽ ശബ്ദമൊന്നുമില്ല.
 the voice model	ശബ്ദ മോഡൽ
 Speakers	സംസാരിക്കുന്നവർ
-Add a speaker	ഒരാളെ ചേർക്കുക
-Add someone else who speaks, then choose them on their lines	സംസാരിക്കുന്ന മറ്റൊരാളെ ചേർക്കുക, എന്നിട്ട് അവരുടെ വരികളിൽ അവരെ തിരഞ്ഞെടുക്കുക
+Add a speaker	സംസാരിക്കുന്ന ഒരാളെ ചേർക്കുക
+Add someone else who speaks, then choose them on their lines	സംസാരിക്കുന്ന മറ്റൊരാളെ ചേർക്കുക, എന്നിട്ട് അയാളുടെ വരികളിൽ അയാളെ തിരഞ്ഞെടുക്കുക
 Name of speaker {0}	സംസാരിക്കുന്നയാൾ {0}-ന്റെ പേര്
-Who speaks	ആര് സംസാരിക്കുന്നു
+Who speaks	ആരാണ് സംസാരിക്കുന്നത്
 Speaker	സംസാരിക്കുന്നയാൾ
-Say who is speaking	ആരാണ് സംസാരിക്കുന്നതെന്ന് പറയുക
-Each line is marked Speaker 1, Speaker 2 and so on. You can give them names in Check text.	ഓരോ വരിയിലും സംസാരിക്കുന്നയാൾ 1, സംസാരിക്കുന്നയാൾ 2 എന്നിങ്ങനെ കാണിക്കും. ടെക്സ്റ്റ് പരിശോധിക്കുക എന്നതിൽ അവർക്ക് പേരുകൾ നൽകാം.
-Find out how many by itself	എത്ര പേരുണ്ടെന്ന് സ്വയം കണ്ടെത്തുക
+Say who is speaking	ആരാണ് സംസാരിക്കുന്നതെന്ന് കാണിക്കുക
+Each line is marked Speaker 1, Speaker 2 and so on. You can give them names in Check text.	ഓരോ വരിയിലും സംസാരിക്കുന്നയാൾ 1, സംസാരിക്കുന്നയാൾ 2 എന്നിങ്ങനെ അടയാളപ്പെടുത്തും. ‘ടെക്സ്റ്റ് പരിശോധിക്കുക’ എന്നതിൽ അവർക്ക് പേരുകൾ നൽകാം.
+Find out how many by itself	എത്ര പേരുണ്ടെന്ന് തനിയെ കണ്ടെത്തും
 {0} people speak	{0} പേർ സംസാരിക്കുന്നു
 How many people speak	എത്ര പേർ സംസാരിക്കുന്നു
 Getting the voice model that tells speakers apart ({0})	സംസാരിക്കുന്നവരെ തിരിച്ചറിയുന്ന ശബ്ദ മോഡൽ എടുക്കുന്നു ({0})
