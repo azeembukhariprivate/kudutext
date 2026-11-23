@@ -1,3 +1,5 @@
+// The speech models (Fast, Good, Best): downloaded from Hugging Face once, carried on after a drop, and kept only when
+// whisper.cpp's checksum matches; and the voice model that tells speakers apart.
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,13 +14,19 @@ namespace Kudutext.Core
     /// <summary>A speech model whisper.cpp uses: bigger ones are more accurate and slower.</summary>
     public sealed class SpeechModel
     {
+        /// <summary>A short id kept in settings ("fast", "good", "best").</summary>
         public string Id { get; set; }
+        /// <summary>Its name as shown.</summary>
         public string Name { get; set; }
+        /// <summary>A line about it: how quick and how exact.</summary>
         public string About { get; set; }
+        /// <summary>Its file name (whisper.cpp's name for it).</summary>
         public string FileName { get; set; }
+        /// <summary>Its size in bytes.</summary>
         public long Size { get; set; }
         /// <summary>The SHA-1 checksum whisper.cpp publishes for the file (models/README.md).</summary>
         public string Sha1 { get; set; }
+        /// <summary>Where it's downloaded from.</summary>
         public string Url => "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/" + FileName;
     }
 
@@ -28,6 +36,7 @@ namespace Kudutext.Core
     /// </summary>
     public static class SpeechModels
     {
+        /// <summary>The models on offer, quickest first.</summary>
         public static readonly IReadOnlyList<SpeechModel> All = new[]
         {
             new SpeechModel { Id = "fast", Name = "Fast", About = "Quick, for clear speech", FileName = "ggml-base.bin", Size = 147951465, Sha1 = "465707469ff3a37a2b9b8d8f89f2f99de7299dac" },
@@ -38,13 +47,18 @@ namespace Kudutext.Core
         /// <summary>The smallest model, used by the self-test only (not offered in the app).</summary>
         public static readonly SpeechModel Tiny = new SpeechModel { Id = "tiny", Name = "Tiny", FileName = "ggml-tiny.bin", Size = 77691713, Sha1 = "bd577a113a864445d4c299885e0cb97d4ba92b5f" };
 
+        /// <summary>The usual choice: Good.</summary>
         public static SpeechModel Default => All[1];
 
+        /// <summary>
+        /// A model by its id (the tiny one for the self-test; the usual one when the id isn't known).
+        /// </summary>
         public static SpeechModel Find(string id) => All.FirstOrDefault(m => m.Id == id) ?? (id == Tiny.Id ? Tiny : Default);
 
         /// <summary>Where models are kept (the self-test uses its own folder).</summary>
         public static string Folder { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KUDUTEXT", "Models");
 
+        /// <summary>Where a model is kept on this PC.</summary>
         public static string PathOf(SpeechModel m) => System.IO.Path.Combine(Folder, m.FileName);
 
         /// <summary>The model is downloaded and was checked (a small ".ok" note is written beside it once its checksum matched).</summary>
@@ -54,6 +68,7 @@ namespace Kudutext.Core
             return File.Exists(file) && File.Exists(file + ".ok") && File.ReadAllText(file + ".ok").Trim() == m.Sha1;
         }
 
+        /// <summary>A file's SHA-1 checksum, as lowercase hex (whisper.cpp publishes these).</summary>
         public static string Sha1Of(string file)
         {
             using (var sha = SHA1.Create())
@@ -84,15 +99,22 @@ namespace Kudutext.Core
     /// </summary>
     public static class VoiceModel
     {
+        /// <summary>The voice model's file name.</summary>
         public const string FileName = "wespeaker_en_voxceleb_resnet34_LM.onnx";
+        /// <summary>Where it's downloaded from: the sherpa-onnx project's releases on GitHub.</summary>
         public const string Url = "https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-recongition-models/" + FileName;
+        /// <summary>Its size in bytes.</summary>
         public const long Size = 26530550;
+        /// <summary>Its SHA-256 checksum (it's kept only when it matches).</summary>
         public const string Sha256 = "e9848563da86f263117134dfd7ad63c92355b37de492b55e325400c9d9c39012";
 
+        /// <summary>Where it's kept on this PC.</summary>
         public static string PathOf => System.IO.Path.Combine(SpeechModels.Folder, FileName);
 
+        /// <summary>True when it's downloaded and was checked.</summary>
         public static bool IsReady => File.Exists(PathOf) && File.Exists(PathOf + ".ok") && File.ReadAllText(PathOf + ".ok").Trim() == Sha256;
 
+        /// <summary>Downloads the voice model (carrying on after a drop), checks it, and keeps it.</summary>
         public static async Task Download(HttpClient http, Action<long, long> progress, CancellationToken cancel, string url = null)
         {
             Directory.CreateDirectory(SpeechModels.Folder);
@@ -107,6 +129,7 @@ namespace Kudutext.Core
 
     public sealed class DownloadFailedException : Exception
     {
+        /// <summary>A download failed: the message says why, in plain words.</summary>
         public DownloadFailedException(string message) : base(message)
         {
         }

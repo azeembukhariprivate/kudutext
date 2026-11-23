@@ -1,3 +1,4 @@
+// Settings and About.
 using System;
 using System.IO;
 using System.Linq;
@@ -11,10 +12,14 @@ namespace Kudutext.Views
 {
     public sealed class SettingsWindow : Window
     {
+        /// <summary>The speech models on this PC, with their sizes and a way to remove them.</summary>
         private readonly StackPanel _models = new StackPanel();
+        /// <summary>FFmpeg: whether it's here, and buttons to get or remove it.</summary>
         private readonly StackPanel _ffmpeg = new StackPanel();
+        /// <summary>Stops getting FFmpeg.</summary>
         private System.Threading.CancellationTokenSource _getting;
 
+        /// <summary>Settings: theme, language, update checks, the models and FFmpeg.</summary>
         public SettingsWindow(Window owner)
         {
             Width = 580;
@@ -79,6 +84,7 @@ namespace Kudutext.Views
             Closed += (s, e) => _getting?.Cancel();
         }
 
+        /// <summary>Shows whether FFmpeg is here, with the button to get or remove it.</summary>
         private void RefreshFfmpeg()
         {
             _ffmpeg.Children.Clear();
@@ -142,6 +148,7 @@ namespace Kudutext.Views
             _ffmpeg.Children.Add(row);
         }
 
+        /// <summary>Shows the speech models on this PC.</summary>
         private void RefreshModels()
         {
             _models.Children.Clear();
@@ -174,6 +181,7 @@ namespace Kudutext.Views
 
     public static class About
     {
+        /// <summary>The About window: the credit line, the licence, the notices, the version.</summary>
         public static Window Build(Window owner)
         {
             var header = Ui.Row(LogoTile.Create(64), Ui.Column(Ui.Text("KUDUTEXT", 20, bold: true), Ui.Subtle("Version " + AppInfo.VersionText + " · Speech to text and subtitles, on your PC", 12.5))
@@ -238,8 +246,10 @@ namespace Kudutext.Views
             return window;
         }
 
+        /// <summary>Shows About.</summary>
         public static void Show(Window owner) => Build(owner).ShowDialog();
 
+        /// <summary>Opens a file that comes with KUDUTEXT (the licence, the notices).</summary>
         private static void OpenLocal(string name)
         {
             var path = Path.Combine(Path.GetDirectoryName(AppInfo.ExePath) ?? string.Empty, name);

@@ -1,3 +1,5 @@
+// The main window: the list of files to turn into text, the choices (speed and accuracy, language, who speaks, what to
+// save and where), and doing the files one after another.
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,35 +23,61 @@ namespace Kudutext.Views
     /// </summary>
     public sealed class MainWindow : Window
     {
+        /// <summary>The files in the list.</summary>
         private readonly List<Job> _jobs;
+        /// <summary>Each file's row.</summary>
         private readonly Dictionary<Job, JobRow> _rows = new Dictionary<Job, JobRow>();
+        /// <summary>The rows, one under another.</summary>
         private readonly StackPanel _list = new StackPanel();
+        /// <summary>Scrolls the list.</summary>
         private readonly ScrollViewer _scroll;
+        /// <summary>What the list shows when it's empty.</summary>
         private readonly Border _empty;
+        /// <summary>The link that shows when a newer version is out.</summary>
         private readonly Button _update = Ui.Link(string.Empty, (s, e) => AppInfo.OpenUrl(AppInfo.ReleasesUrl + "/latest"));
+        /// <summary>The line at the bottom: waiting, done, failed.</summary>
         private readonly TextBlock _status = Ui.Subtle(string.Empty, 12.5, false);
+        /// <summary>Start the files waiting.</summary>
         private readonly Button _start;
+        /// <summary>Stop all the work.</summary>
         private readonly Button _stop;
+        /// <summary>Clear the finished files from the list.</summary>
         private readonly Button _clear;
+        /// <summary>The speech model choices, by id.</summary>
         private readonly Dictionary<string, RadioButton> _modelChips = new Dictionary<string, RadioButton>();
+        /// <summary>A line about the model chosen (its size, whether it's on this PC).</summary>
         private readonly TextBlock _modelNote = Ui.Subtle(string.Empty, 12, false);
+        /// <summary>Where the files are saved.</summary>
         private readonly TextBlock _folderText = Ui.Text(string.Empty, 12.5);
+        /// <summary>Back to saving beside each file.</summary>
         private Button _folderReset;
 
         // The speech model download banner.
         private readonly Border _banner;
+        /// <summary>The download banner's title.</summary>
         private readonly TextBlock _bannerTitle = Ui.Text(string.Empty, 13, bold: true, wrap: true);
+        /// <summary>The download banner's text.</summary>
         private readonly TextBlock _bannerText = Ui.Subtle(string.Empty, 12, true);
+        /// <summary>How far the download has got.</summary>
         private readonly ProgressBar _bannerBar = new ProgressBar { Maximum = 1000, Margin = new Thickness(0, 8, 0, 0) };
+        /// <summary>Stops the download.</summary>
         private readonly Button _bannerCancel;
+        /// <summary>Tries the download again.</summary>
         private readonly Button _bannerRetry;
 
+        /// <summary>Does each file.</summary>
         private readonly Runner _runner;
+        /// <summary>Stops the file being done.</summary>
         private CancellationTokenSource _jobCancel;
+        /// <summary>Stops the download.</summary>
         private CancellationTokenSource _downloadCancel;
+        /// <summary>True while files are being done.</summary>
         private bool _busy;
+        /// <summary>True when Stop was pressed (nothing more is started).</summary>
         private bool _stopAll;
+        /// <summary>True while the window closes.</summary>
         private bool _closing;
+        /// <summary>True while the app sets the choices itself (not a click).</summary>
         private bool _showingChoices;
 
         /// <summary>For the self-test: where the speech model is downloaded from instead of the usual address.</summary>
@@ -57,10 +85,12 @@ namespace Kudutext.Views
         public static string VoiceModelUrlOverride { get; set; }
 
         /// <summary>For the self-test: close without asking.</summary>
+        /// <summary>The speech engine, in the engine folder next to KUDUTEXT.</summary>
         public bool SkipClosePrompt { get; set; }
 
         public static string EnginePath => Path.Combine(Path.GetDirectoryName(AppInfo.ExePath) ?? ".", "engine", "whisper-cli.exe");
 
+        /// <summary>Builds the window and reads the list kept from last time.</summary>
         public MainWindow()
         {
             Width = 1040;
@@ -176,13 +206,20 @@ namespace Kudutext.Views
             };
         }
 
+        /// <summary>The files in the list (for the self-test).</summary>
         public IReadOnlyList<Job> Jobs => _jobs;
+        /// <summary>True while files are being done.</summary>
         public bool IsBusy => _busy;
+        /// <summary>True while the download banner shows.</summary>
         public bool BannerShown => _banner.Visibility == Visibility.Visible;
+        /// <summary>The banner's words.</summary>
         public string BannerText => _bannerTitle.Text + " " + _bannerText.Text;
 
         // ================================================================ choices
 
+        /// <summary>
+        /// The choices: speed and accuracy, the language spoken, translating, who speaks, what to save and where.
+        /// </summary>
         private UIElement BuildChoices()
         {
             var grid = new Grid();
@@ -289,6 +326,7 @@ namespace Kudutext.Views
             return grid;
         }
 
+        /// <summary>Shows the choices as they're set (and whether the model chosen is on this PC yet).</summary>
         private void RefreshChoices()
         {
             var current = SpeechModels.Find(Settings.Model);
@@ -304,6 +342,7 @@ namespace Kudutext.Views
 
         // ================================================================ the list
 
+        /// <summary>Asks for files and adds them.</summary>
         private void PickFiles()
         {
             var dialog = new Microsoft.Win32.OpenFileDialog
@@ -354,6 +393,7 @@ namespace Kudutext.Views
             return added;
         }
 
+        /// <summary>Adds a file's row to the list.</summary>
         private void AddRow(Job job)
         {
             var row = new JobRow(job, this);
@@ -362,6 +402,7 @@ namespace Kudutext.Views
             row.Refresh();
         }
 
+        /// <summary>Takes a file off the list (and forgets its kept text).</summary>
         internal void Remove(Job job)
         {
             if (job.State == JobState.Working) return;
@@ -374,6 +415,7 @@ namespace Kudutext.Views
             UpdateBottom();
         }
 
+        /// <summary>Does a file again, with the choices as they are now.</summary>
         internal void Retry(Job job)
         {
             if (job.State == JobState.Working) return;
@@ -423,11 +465,13 @@ namespace Kudutext.Views
             return window;
         }
 
+        /// <summary>Stops the file being done.</summary>
         internal void StopOne(Job job)
         {
             if (job.State == JobState.Working) _jobCancel?.Cancel();
         }
 
+        /// <summary>Takes the finished, stopped and failed files off the list.</summary>
         public void ClearFinished()
         {
             foreach (var job in _jobs.Where(j => j.State == JobState.Done || j.State == JobState.Cancelled || j.State == JobState.Failed).ToList())
@@ -440,6 +484,7 @@ namespace Kudutext.Views
             UpdateBottom();
         }
 
+        /// <summary>Stops all the work.</summary>
         public void StopAll()
         {
             _stopAll = true;
@@ -447,11 +492,13 @@ namespace Kudutext.Views
             _downloadCancel?.Cancel();
         }
 
+        /// <summary>Brings a file's row up to date.</summary>
         private void Refresh(Job job)
         {
             if (_rows.TryGetValue(job, out var row)) row.Refresh();
         }
 
+        /// <summary>The bottom line and its buttons, as the list is now.</summary>
         private void UpdateBottom()
         {
             var waiting = _jobs.Count(j => j.State == JobState.Waiting);
@@ -532,6 +579,9 @@ namespace Kudutext.Views
             "The voice model couldn't be saved",
             (http, progress, cancel) => VoiceModel.Download(http, progress, cancel, VoiceModelUrlOverride));
 
+        /// <summary>
+        /// Downloads a file (a model) with the banner showing its progress. False when it was stopped or failed.
+        /// </summary>
         private async Task<bool> GetFile(string title, string stopped, string failed, string notSaved,
             Func<HttpClient, Action<long, long>, CancellationToken, Task> download)
         {
@@ -603,6 +653,7 @@ namespace Kudutext.Views
             }
         }
 
+        /// <summary>The banner says the download stopped or failed, with Try again.</summary>
         private void ShowBannerError(string title, string text)
         {
             _bannerTitle.Text = title;
@@ -613,8 +664,10 @@ namespace Kudutext.Views
             _banner.Visibility = Visibility.Visible;
         }
 
+        /// <summary>Hides the banner.</summary>
         private void HideBanner() => _banner.Visibility = Visibility.Collapsed;
 
+        /// <summary>Checks GitHub for a newer version, and shows the link when there is one.</summary>
         private async Task CheckForUpdates()
         {
             if (!Settings.CheckForUpdates || SelfTest.Running) return;
@@ -633,10 +686,15 @@ namespace Kudutext.Views
 
         private sealed class Command : ICommand
         {
+            /// <summary>What the key does.</summary>
             private readonly Action _run;
+            /// <summary>A key that does `run`.</summary>
             public Command(Action run) => _run = run;
+            /// <summary>The key always works, so this never changes.</summary>
             public event EventHandler CanExecuteChanged { add { } remove { } }
+            /// <summary>The key always works.</summary>
             public bool CanExecute(object parameter) => true;
+            /// <summary>Does what the key does.</summary>
             public void Execute(object parameter) => _run();
         }
     }
@@ -644,19 +702,32 @@ namespace Kudutext.Views
     /// <summary>One file in the list: its name, how far it's got, and what can be done with it.</summary>
     internal sealed class JobRow
     {
+        /// <summary>The file this row is for.</summary>
         private readonly Job _job;
+        /// <summary>The main window (which does the work the buttons ask for).</summary>
         private readonly MainWindow _owner;
+        /// <summary>The file's name.</summary>
         private readonly TextBlock _name = Ui.Text(string.Empty, 13.5, bold: true);
+        /// <summary>What's happening, or how it went.</summary>
         private readonly TextBlock _detail = Ui.Subtle(string.Empty, 12, false);
+        /// <summary>How far it's got.</summary>
         private readonly ProgressBar _bar = new ProgressBar { Maximum = 100, Width = 150, Margin = new Thickness(14, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+        /// <summary>Its state as a coloured chip.</summary>
         private readonly ContentControl _chip = new ContentControl { Margin = new Thickness(14, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center, Focusable = false };
+        /// <summary>Shows the files made.</summary>
         private readonly Button _show;
+        /// <summary>Opens Check the text.</summary>
         private readonly Button _check;
+        /// <summary>Opens Put subtitles into the video.</summary>
         private readonly Button _video;
+        /// <summary>Does it again.</summary>
         private readonly Button _retry;
+        /// <summary>Stops it.</summary>
         private readonly Button _stop;
+        /// <summary>Takes it off the list.</summary>
         private readonly Button _remove;
 
+        /// <summary>A row for a file, with its buttons.</summary>
         public JobRow(Job job, MainWindow owner)
         {
             _job = job;
@@ -688,8 +759,10 @@ namespace Kudutext.Views
             };
         }
 
+        /// <summary>The row, to put in the list.</summary>
         public Border Element { get; }
 
+        /// <summary>Shows the file's state, progress and the buttons that fit it.</summary>
         public void Refresh()
         {
             _name.Text = _job.FileName;
@@ -740,6 +813,7 @@ namespace Kudutext.Views
             _remove.Visibility = _job.State == JobState.Working ? Visibility.Collapsed : Visibility.Visible;
         }
 
+        /// <summary>Opens File Explorer at the files made.</summary>
         private void ShowFiles()
         {
             var first = _job.Outputs?.FirstOrDefault(File.Exists);

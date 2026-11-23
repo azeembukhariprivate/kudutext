@@ -1,3 +1,5 @@
+// Writing the subtitle and text files beside the recording (or in the folder chosen), never replacing a file KUDUTEXT
+// didn't make.
 using System;
 using System.Collections.Generic;
 using System.IO;

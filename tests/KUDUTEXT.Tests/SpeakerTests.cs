@@ -1,3 +1,5 @@
+// Telling speakers apart, with the real voice model and recordings of known speakers (downloaded and checked into
+// samples-cache).
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,7 +17,9 @@ namespace Kudutext.Tests
     /// </summary>
     public static partial class Program
     {
+        /// <summary>Where the voice model and the recordings are downloaded from.</summary>
         private const string Release = "https://github.com/k2-fsa/sherpa-onnx/releases/download/";
+        /// <summary>The files the tests need, each with its checksum.</summary>
         private static readonly (string Name, string Url, string Sha256)[] VoiceSamples =
         {
             ("0-four-speakers-zh.wav", Release + "speaker-segmentation-models/0-four-speakers-zh.wav", "bedf036caed208386c67b4ef4b11f83d74dd0d420b102163a1c33cd09cde7010"),
@@ -33,6 +37,7 @@ namespace Kudutext.Tests
             }
         }
 
+        /// <summary>One of those files, downloaded and checked the first time.</summary>
         private static string VoiceSample(string name)
         {
             var s = VoiceSamples.Single(x => x.Name == name);
@@ -49,8 +54,10 @@ namespace Kudutext.Tests
             return path;
         }
 
+        /// <summary>A made-up voice print.</summary>
         private static float[] Prints(params float[] v) => Speakers.Normalise(v);
 
+        /// <summary>Grouping voice prints: three voices found, or as many as asked for.</summary>
         private static void TestGroupVoices()
         {
             // Three voices, each a little different every time it speaks.
@@ -68,6 +75,7 @@ namespace Kudutext.Tests
             Equal(7, Speakers.Group(prints, 7).Distinct().Count(), "as many as lines");
         }
 
+        /// <summary>Reading a WAV file.</summary>
         private static void TestReadWav()
         {
             var file = Path.Combine(Folder("wav"), "a.wav");
@@ -86,6 +94,7 @@ namespace Kudutext.Tests
             Check(Math.Abs(samples[1] - 0.5f) < 1e-4 && Math.Abs(samples[2] + 1f) < 1e-4, "values");
         }
 
+        /// <summary>Speakers in the SRT, VTT and text files, and kept with the text.</summary>
         private static void TestSpeakersInFiles()
         {
             var t = Sample();
@@ -114,6 +123,7 @@ namespace Kudutext.Tests
             Equal("B", built.SpeakerOf(built.Segments[0]), "speaker of a line");
         }
 
+        /// <summary>The sound's bands match those of a separate numpy version.</summary>
         private static void TestVoiceBands()
         {
             // Checked against a separate implementation of Kaldi's fbank (with numpy).
@@ -127,6 +137,7 @@ namespace Kudutext.Tests
             Equal(0, Fbank.Compute(samples, 0, 399, out frames).Length + frames, "too short");
         }
 
+        /// <summary>Three known voices in real recordings are told apart.</summary>
         private static void TestTellSpeakersApart()
         {
             var zh = Wav.Read(VoiceSample("0-four-speakers-zh.wav"), out _);
@@ -171,6 +182,7 @@ namespace Kudutext.Tests
             }
         }
     
+        /// <summary>The runner finds speakers when asked, and keeps the text when that fails.</summary>
         private static void TestRunnerFindsSpeakers()
         {
             var dir = Folder("run-speakers");

@@ -1,3 +1,5 @@
+// Telling speakers apart: the sound of each line as the voice model hears it, a voice print per line, and lines grouped
+// by whose voice they are.
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,13 +14,21 @@ namespace Kudutext.Core
     /// </summary>
     public static class Fbank
     {
+        /// <summary>Frequency bands in each 10 ms step.</summary>
         public const int Bands = 80;
+        /// <summary>
+        /// 16,000 samples a second; 25 ms steps (400 samples) every 10 ms (160); 512-point frequency analysis.
+        /// </summary>
         private const int Rate = 16000, FrameLength = 400, FrameShift = 160, FftSize = 512;
+        /// <summary>The Hamming window: softens each step's edges before the frequency analysis.</summary>
         private static readonly double[] Window = Enumerable.Range(0, FrameLength).Select(i => 0.54 - 0.46 * Math.Cos(2 * Math.PI * i / (FrameLength - 1))).ToArray();
+        /// <summary>The 80 triangle filters that turn the frequencies into bands.</summary>
         private static readonly double[][] Filters = MakeFilters();
 
+        /// <summary>A frequency on the mel scale, which spaces pitches as the ear hears them.</summary>
         private static double Mel(double f) => 1127.0 * Math.Log(1 + f / 700.0);
 
+        /// <summary>Makes the 80 triangle filters, evenly spaced on the mel scale from 20 Hz to 8 kHz.</summary>
         private static double[][] MakeFilters()
         {
             double low = Mel(20), high = Mel(Rate / 2.0);
@@ -133,14 +143,17 @@ namespace Kudutext.Core
     /// <summary>The voice model (WeSpeaker ResNet34, run with ONNX Runtime on the PC).</summary>
     public sealed class OnnxVoicePrints : IVoicePrints
     {
+        /// <summary>The voice model, loaded once.</summary>
         private readonly Microsoft.ML.OnnxRuntime.InferenceSession _session;
 
+        /// <summary>Loads the voice model (an ONNX file).</summary>
         public OnnxVoicePrints(string model)
         {
             var options = new Microsoft.ML.OnnxRuntime.SessionOptions { IntraOpNumThreads = Math.Max(1, Environment.ProcessorCount / 2) };
             _session = new Microsoft.ML.OnnxRuntime.InferenceSession(model, options);
         }
 
+        /// <summary>The voice print (256 numbers) of some speech, from its bands.</summary>
         public float[] Print(float[] bands, int frames)
         {
             var input = new Microsoft.ML.OnnxRuntime.Tensors.DenseTensor<float>(bands, new[] { 1, frames, Fbank.Bands });
@@ -148,6 +161,7 @@ namespace Kudutext.Core
                 return results.First().AsEnumerable<float>().ToArray();
         }
 
+        /// <summary>Lets the voice model go.</summary>
         public void Dispose() => _session.Dispose();
     }
 
@@ -211,8 +225,12 @@ namespace Kudutext.Core
             t.SpeakerNames = Enumerable.Range(0, order.Count).Select(DefaultName).ToList();
         }
 
+        /// <summary>A speaker's name before it's given one: "Speaker 1", "Speaker 2"...</summary>
         public static string DefaultName(int index) => Lang.T("Speaker {0}", index + 1);
 
+        /// <summary>
+        /// The numbers scaled so they add up (squared) to 1, so prints can be compared by direction only.
+        /// </summary>
         public static float[] Normalise(float[] v)
         {
             double sum = 0;
@@ -221,6 +239,7 @@ namespace Kudutext.Core
             return length <= 0 ? v : v.Select(x => (float)(x / length)).ToArray();
         }
 
+        /// <summary>How alike two voice prints are: 1 for the same, around 0 for unrelated.</summary>
         public static double Alike(float[] a, float[] b)
         {
             double sum = 0;
@@ -278,6 +297,9 @@ namespace Kudutext.Core
     /// <summary>Reads a 16-bit PCM WAV file (what KUDUTEXT makes in its work folder) as samples from -1 to 1.</summary>
     public static class Wav
     {
+        /// <summary>
+        /// Reads a 16-bit WAV file's sound, as one channel of numbers from -1 to 1, and its samples a second.
+        /// </summary>
         public static float[] Read(string path, out int rate)
         {
             using (var r = new BinaryReader(File.OpenRead(path)))

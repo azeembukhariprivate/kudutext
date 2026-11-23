@@ -1,3 +1,4 @@
+// Downloading a big file safely: carrying on after a dropped connection, and keeping it only when its checksum matches.
 using System;
 using System.IO;
 using System.Linq;
@@ -66,6 +67,7 @@ namespace Kudutext.Core
             }
         }
 
+        /// <summary>A file's SHA-256 checksum, as lowercase hex.</summary>
         public static string Sha256Of(string file)
         {
             using (var sha = SHA256.Create())
@@ -73,6 +75,7 @@ namespace Kudutext.Core
                 return string.Concat(sha.ComputeHash(s).Select(b => b.ToString("x2")));
         }
 
+        /// <summary>The text with its first letter made a capital.</summary>
         private static string Capital(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s.Substring(1);
     }
 }

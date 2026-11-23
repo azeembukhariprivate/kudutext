@@ -1,3 +1,5 @@
+// Tests of KUDUTEXT's core: subtitle and text files, reading the engine's answers, the list, downloads (carrying on,
+// refusing a wrong checksum), not replacing other files, the steps of doing a file, checking the text, FFmpeg.
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,10 +16,14 @@ namespace Kudutext.Tests
 {
     public static partial class Program
     {
+        /// <summary>How many tests failed.</summary>
         private static int _failed;
+        /// <summary>How many tests passed.</summary>
         private static int _passed;
+        /// <summary>A temporary folder for the tests' files, removed at the end.</summary>
         private static string _root;
 
+        /// <summary>Runs every method named Test..., and ends with 0 when all passed.</summary>
         public static int Main()
         {
             _root = Path.Combine(Path.GetTempPath(), "kudutext-tests-" + Guid.NewGuid().ToString("N").Substring(0, 8));
@@ -52,6 +58,7 @@ namespace Kudutext.Tests
 
         // ================================================================== subtitle and text files
 
+        /// <summary>A small text to test with: two lines, one over an hour in.</summary>
         private static Transcript Sample() => new Transcript
         {
             Language = "en",
@@ -62,26 +69,31 @@ namespace Kudutext.Tests
             }
         };
 
+        /// <summary>The language files.</summary>
         private static void TestOtherLanguages() => LangTests.Run();
 
 
+        /// <summary>SRT subtitles.</summary>
         private static void TestSrt()
         {
             Equal("1\r\n00:00:00,000 --> 00:00:02,500\r\nAnd so my fellow Americans,\r\n\r\n" +
                   "2\r\n00:00:02,500 --> 01:02:03,456\r\nask not --> what\r\n\r\n", SubtitleFiles.Srt(Sample()), "srt");
         }
 
+        /// <summary>WebVTT subtitles (with no arrow left in the text).</summary>
         private static void TestVtt()
         {
             Equal("WEBVTT\n\n00:00:00.000 --> 00:00:02.500\nAnd so my fellow Americans,\n\n" +
                   "00:00:02.500 --> 01:02:03.456\nask not -> what\n\n", SubtitleFiles.Vtt(Sample()), "vtt, with no arrow in the text");
         }
 
+        /// <summary>Plain text.</summary>
         private static void TestPlainText()
         {
             Equal("And so my fellow Americans," + Environment.NewLine + "ask not --> what" + Environment.NewLine, SubtitleFiles.Write(Sample(), "txt"), "txt");
         }
 
+        /// <summary>Times below zero and over a day.</summary>
         private static void TestTimes()
         {
             Equal("00:00:00,000", SubtitleFiles.Time(TimeSpan.FromSeconds(-3), ','), "below zero");
@@ -89,6 +101,7 @@ namespace Kudutext.Tests
             Equal("00:01:01,001", SubtitleFiles.Time(TimeSpan.FromMilliseconds(61001), ','), "a minute");
         }
 
+        /// <summary>Where the files go: beside the recording, or in the folder chosen.</summary>
         private static void TestWhereFilesGo()
         {
             var video = Path.Combine(_root, "talk.final.mp4");
@@ -98,6 +111,7 @@ namespace Kudutext.Tests
 
         // ================================================================== the speech engine
 
+        /// <summary>An answer as the speech engine writes it.</summary>
         private const string EngineJson = @"{
 	""systeminfo"": ""WHISPER : CPU : AVX = 1 | "",
 	""model"": { ""type"": ""tiny"", ""multilingual"": true },
@@ -111,6 +125,7 @@ namespace Kudutext.Tests
 	]
 }";
 
+        /// <summary>Reading the engine's answer.</summary>
         private static void TestReadEngineAnswer()
         {
             var t = WhisperJson.Parse(EngineJson);
@@ -124,6 +139,7 @@ namespace Kudutext.Tests
             Equal(0, WhisperJson.Parse(@"{""result"":{""language"":""en""},""transcription"":[]}").Segments.Count, "nothing said");
         }
 
+        /// <summary>Lines are tidied (spaces, empty lines left out).</summary>
         private static void TestCleanLines()
         {
             Equal("", WhisperJson.Clean(" [Music] "), "a note");
@@ -131,6 +147,7 @@ namespace Kudutext.Tests
             Equal("", WhisperJson.Clean(null), "nothing");
         }
 
+        /// <summary>The engine's arguments, for each choice.</summary>
         private static void TestEngineArguments()
         {
             var a = Whisper.Arguments(@"C:\m\ggml-small.bin", @"C:\w\a.wav", @"C:\w\x-text", "", false, 7);
@@ -140,6 +157,7 @@ namespace Kudutext.Tests
             Equal("\"C:\\My Videos\\a b.wav\"", Args.Quote(@"C:\My Videos\a b.wav"), "a path with spaces is quoted");
         }
 
+        /// <summary>Reading the engine's progress.</summary>
         private static void TestEngineProgress()
         {
             Equal(45, Whisper.Progress("whisper_print_progress_callback: progress =  45%"), "a progress line");
@@ -149,6 +167,7 @@ namespace Kudutext.Tests
             Check(Whisper.Threads >= 1 && Whisper.Threads <= 16, "threads");
         }
 
+        /// <summary>The speech languages and their names.</summary>
         private static void TestLanguages()
         {
             Equal("auto", Languages.All[0].Key, "found by itself comes first");
@@ -161,6 +180,7 @@ namespace Kudutext.Tests
 
         // ================================================================== speech models
 
+        /// <summary>The speech model choices.</summary>
         private static void TestModelChoices()
         {
             Equal("good", SpeechModels.Default.Id, "Good is the usual choice");
@@ -176,6 +196,7 @@ namespace Kudutext.Tests
             }
         }
 
+        /// <summary>A made-up model of a size, and its body.</summary>
         private static (SpeechModel Model, byte[] Body) FakeModel(int size, string name)
         {
             var body = new byte[size];
@@ -184,6 +205,7 @@ namespace Kudutext.Tests
             return (new SpeechModel { Id = name, Name = name, FileName = name + ".bin", Size = size, Sha1 = sha }, body);
         }
 
+        /// <summary>A model is downloaded and kept.</summary>
         private static void TestModelDownload()
         {
             var (model, body) = FakeModel(300_000, "plain");
@@ -201,6 +223,7 @@ namespace Kudutext.Tests
             }
         }
 
+        /// <summary>A dropped download carries on from where it stopped.</summary>
         private static void TestModelDownloadCarriesOn()
         {
             var (model, body) = FakeModel(500_000, "dropped");
@@ -226,6 +249,7 @@ namespace Kudutext.Tests
             }
         }
 
+        /// <summary>A download with the wrong checksum isn't kept.</summary>
         private static void TestModelDownloadRefusesWrongChecksum()
         {
             var (model, body) = FakeModel(100_000, "wrong");
@@ -249,6 +273,7 @@ namespace Kudutext.Tests
             }
         }
 
+        /// <summary>A missing download says so in plain words.</summary>
         private static void TestModelDownloadMissing()
         {
             var (model, _) = FakeModel(1000, "missing");
@@ -267,6 +292,7 @@ namespace Kudutext.Tests
             }
         }
 
+        /// <summary>A model whose checked note doesn't match isn't counted as ready.</summary>
         private static void TestModelNotReadyWhenNoteIsWrong()
         {
             var (model, body) = FakeModel(1000, "note");
@@ -281,12 +307,14 @@ namespace Kudutext.Tests
 
         // ================================================================== the list
 
+        /// <summary>The kinds of file taken.</summary>
         private static void TestKindsOfFiles()
         {
             Check(JobList.CanTake(@"C:\a\Talk.MP4") && JobList.CanTake("x.mkv") && JobList.CanTake("y.m4a") && JobList.CanTake("z.opus"), "videos and recordings");
             Check(!JobList.CanTake("notes.txt") && !JobList.CanTake("photo.jpg") && !JobList.CanTake("noext") && !JobList.CanTake(null), "other files");
         }
 
+        /// <summary>The list is kept and read back.</summary>
         private static void TestListKept()
         {
             var jobs = new List<Job>
@@ -313,6 +341,7 @@ namespace Kudutext.Tests
             Equal(0, JobList.Load().Count, "no list yet");
         }
 
+        /// <summary>A text is kept and read back.</summary>
         private static void TestTranscriptKept()
         {
             var file = Path.Combine(_root, "texts", "a.json");
@@ -327,6 +356,7 @@ namespace Kudutext.Tests
 
         // ================================================================== writing the files
 
+        /// <summary>A new folder for one test.</summary>
         private static string Folder(string name)
         {
             var d = Path.Combine(_root, name);
@@ -334,6 +364,7 @@ namespace Kudutext.Tests
             return d;
         }
 
+        /// <summary>Files beside the recording.</summary>
         private static void TestOutputsNextToFile()
         {
             var dir = Folder("next");
@@ -345,6 +376,7 @@ namespace Kudutext.Tests
             Equal(SubtitleFiles.Srt(Sample()), File.ReadAllText(outs[0]), "srt text");
         }
 
+        /// <summary>Files in a folder chosen.</summary>
         private static void TestOutputsInFolder()
         {
             var dir = Folder("src");
@@ -355,6 +387,7 @@ namespace Kudutext.Tests
             Check(File.ReadAllBytes(outs[0])[0] == (byte)'W', "vtt starts with WEBVTT, no mark");
         }
 
+        /// <summary>A file KUDUTEXT didn't make is never replaced.</summary>
         private static void TestOutputsNeverReplaceOtherFiles()
         {
             var dir = Folder("keep");
@@ -372,6 +405,7 @@ namespace Kudutext.Tests
             Equal(outs.Single(), again.Single(), "its own file is replaced");
         }
 
+        /// <summary>The recording itself is never written over.</summary>
         private static void TestOutputNeverTheSourceItself()
         {
             Equal(Path.Combine(_root, "a (2).wav"), Outputs.FreeName(Path.Combine(_root, "a.wav"), new List<string>(), Path.Combine(_root, "a.wav")), "never the file itself");
@@ -379,6 +413,7 @@ namespace Kudutext.Tests
 
         // ================================================================== turning a file into text
 
+        /// <summary>A runner whose reading and listening are stand-ins (noting what the engine was given).</summary>
         private static Runner FakeRunner(List<string> heardFrom, bool decodeFails = false, Func<CancellationToken, Task> during = null)
         {
             return new Runner
@@ -401,6 +436,7 @@ namespace Kudutext.Tests
             };
         }
 
+        /// <summary>A file is done from start to end.</summary>
         private static void TestRunnerDoesAFile()
         {
             var dir = Folder("run");
@@ -421,6 +457,7 @@ namespace Kudutext.Tests
             Equal(null, job.Step, "no step left");
         }
 
+        /// <summary>The engine reads MP3 itself when Windows can't.</summary>
         private static void TestRunnerLetsEngineReadMp3()
         {
             var dir = Folder("mp3");
@@ -432,6 +469,7 @@ namespace Kudutext.Tests
             Check(heard.Single().StartsWith(job.File + "|"), "the engine got the file itself");
         }
 
+        /// <summary>A failure is said in plain words.</summary>
         private static void TestRunnerFailsInPlainWords()
         {
             var dir = Folder("fail");
@@ -455,6 +493,7 @@ namespace Kudutext.Tests
             Equal("The speech engine stopped (code 3).", engine.Error, "why");
         }
 
+        /// <summary>Stopping part way.</summary>
         private static void TestRunnerStops()
         {
             var dir = Folder("stop");
@@ -474,6 +513,7 @@ namespace Kudutext.Tests
             Check(!File.Exists(Path.Combine(Runner.WorkFolder, job.Id + ".wav")), "the work file is removed");
         }
 
+        /// <summary>Writing it in English.</summary>
         private static void TestRunnerTranslates()
         {
             var dir = Folder("tr");
@@ -496,6 +536,7 @@ namespace Kudutext.Tests
 
         // ================================================================== checking and correcting
 
+        /// <summary>Reading typed times.</summary>
         private static void TestReadTimes()
         {
             Equal(62500L, TextEdits.ParseTime("00:01:02.500"), "full, dot");
@@ -510,6 +551,7 @@ namespace Kudutext.Tests
             Equal(62500L, TextEdits.ParseTime(TextEdits.ShowTime(62500)), "read back");
         }
 
+        /// <summary>Splitting and joining lines.</summary>
         private static void TestSplitAndJoin()
         {
             Check(TextEdits.SplitText("ask not what your country", 7, out var a, out var b) && a == "ask not" && b == "what your country", "split at the cursor");
@@ -522,6 +564,7 @@ namespace Kudutext.Tests
             Equal("what", TextEdits.JoinText("", "what"), "an empty part");
         }
 
+        /// <summary>Replacing words.</summary>
         private static void TestReplaceWords()
         {
             Equal("ask what your nation, nation", TextEdits.Replace("ask what your country, COUNTRY", "country", "nation", false, out var n), "every one, any case");
@@ -534,6 +577,7 @@ namespace Kudutext.Tests
             Check(TextEdits.Contains("Your Country", "country", false) && !TextEdits.Contains("Your Country", "country", true), "finding");
         }
 
+        /// <summary>Wrong times are caught.</summary>
         private static void TestTimeProblems()
         {
             Equal(null, TextEdits.Problem("00:00:01.000", "00:00:02.000", 0), "fine");
@@ -544,6 +588,7 @@ namespace Kudutext.Tests
             Equal("It starts before the line above.", TextEdits.Problem("1", "2", 3000), "out of order");
         }
 
+        /// <summary>Lines with no words are left out when saving.</summary>
         private static void TestBuildLeavesOutEmptyLines()
         {
             var t = TextEdits.Build("en", new[] { (0L, 1000L, " one "), (1000L, 2000L, "  "), (2000L, 3000L, "three") });
@@ -552,6 +597,7 @@ namespace Kudutext.Tests
             Equal("en", t.Language, "language");
         }
 
+        /// <summary>Saving writes the job's own files again.</summary>
         private static void TestRewriteOwnFiles()
         {
             var dir = Folder("rewrite");
@@ -573,6 +619,7 @@ namespace Kudutext.Tests
 
         // ================================================================== FFmpeg
 
+        /// <summary>The pinned FFmpeg build.</summary>
         private static void TestFfmpegPackage()
         {
             Check(Ffmpeg.Package.Url.StartsWith("https://github.com/GyanD/codexffmpeg/releases/download/" + Ffmpeg.Package.Version + "/"), "a pinned address");
@@ -580,6 +627,7 @@ namespace Kudutext.Tests
             Check(Ffmpeg.Package.Size > 50_000_000, "its size");
         }
 
+        /// <summary>A made-up FFmpeg download.</summary>
         private static byte[] FakeFfmpegZip()
         {
             using (var ms = new MemoryStream())
@@ -598,6 +646,7 @@ namespace Kudutext.Tests
             }
         }
 
+        /// <summary>FFmpeg is downloaded and only ffmpeg.exe and its licence are kept.</summary>
         private static void TestFfmpegDownload()
         {
             var body = FakeFfmpegZip();
@@ -650,6 +699,7 @@ namespace Kudutext.Tests
             }
         }
 
+        /// <summary>The names of the new videos.</summary>
         private static void TestVideoNames()
         {
             var dir = Path.Combine(_root, "v");
@@ -662,6 +712,7 @@ namespace Kudutext.Tests
             Check(Ffmpeg.VideoKinds.All(JobList.Kinds.Contains), "every video kind can be added");
         }
 
+        /// <summary>FFmpeg's arguments for a track and for the picture.</summary>
         private static void TestFfmpegArguments()
         {
             var track = Ffmpeg.TrackArgs("v/talk.mp4", "w/s.srt", "v/talk (subtitles).mp4", "ml");
@@ -686,6 +737,7 @@ namespace Kudutext.Tests
             Equal(null, Ffmpeg.LanguageCode3(null), "none");
         }
 
+        /// <summary>Reading FFmpeg's progress lines.</summary>
         private static void TestReadFfmpegLines()
         {
             Equal(62.5, Ffmpeg.Duration("  Duration: 00:01:02.50, start: 0.000000, bitrate: 128 kb/s"), "the length");
@@ -698,11 +750,13 @@ namespace Kudutext.Tests
 
         // ================================================================== helpers
 
+        /// <summary>Fails the test with `what` when the condition is false.</summary>
         private static void Check(bool condition, string what)
         {
             if (!condition) throw new Exception("Check failed: " + what);
         }
 
+        /// <summary>Fails the test when the two values differ.</summary>
         private static void Equal<T>(T expected, T actual, string what)
         {
             if (!EqualityComparer<T>.Default.Equals(expected, actual)) throw new Exception($"{what}: expected {expected}, got {actual}");

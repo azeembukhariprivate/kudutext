@@ -1,3 +1,5 @@
+// Doing one file: reading its sound, listening (the speech engine), finding who speaks, keeping the text and writing
+// the files.
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,6 +12,7 @@ namespace Kudutext.Core
     /// <summary>Why a file's sound couldn't be read, in plain words.</summary>
     public sealed class AudioException : Exception
     {
+        /// <summary>The sound couldn't be read: the message says why, in plain words.</summary>
         public AudioException(string message, Exception inner = null) : base(message, inner)
         {
         }
@@ -24,20 +27,29 @@ namespace Kudutext.Core
         /// <summary>Reads a video's or recording's sound into a 16 kHz mono WAV file; returns its length in seconds.</summary>
         public delegate double DecodeFn(string source, string wav, Action<int> progress, CancellationToken cancel);
 
+        /// <summary>Turns a sound file into text (the speech engine, or a stand-in in the tests).</summary>
         public delegate Task<Transcript> TranscribeFn(string model, string audio, string language, bool translate, Action<int> progress, CancellationToken cancel);
 
         /// <summary>Gives each line a speaker (the voice model, or a stand-in in the tests).</summary>
         public delegate void SpeakersFn(Transcript t, float[] samples, int count, Action<int> progress, CancellationToken cancel);
 
+        /// <summary>The step that reads a file's sound into a WAV file.</summary>
         public DecodeFn Decode { get; set; }
+        /// <summary>The step that listens and writes down what's said.</summary>
         public TranscribeFn Transcribe { get; set; }
+        /// <summary>The step that says who speaks each line (only when asked).</summary>
         public SpeakersFn FindSpeakers { get; set; }
 
+        /// <summary>Where the work files go while a file is being done (removed afterwards).</summary>
         public static string WorkFolder => Path.Combine(JobList.Folder, "Work");
 
         /// <summary>The share of the bar given to reading the sound; the rest is listening.</summary>
         public const int ReadingShare = 15;
 
+        /// <summary>
+        /// Does one file from start to end, reporting its progress, and says how it went in the job (done, stopped or
+        /// what went wrong).
+        /// </summary>
         public async Task Do(Job job, IList<string> formats, string folder, Action changed, CancellationToken cancel)
         {
             job.State = JobState.Working;

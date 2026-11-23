@@ -1,3 +1,5 @@
+// The "Check the text" window: each line with its times, words and speaker, to play, correct, split, join, remove,
+// replace words in, rename speakers and save.
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -18,26 +20,38 @@ namespace Kudutext.Views
     /// <summary>One line of speech while it's being checked: its times as typed, its words, and anything wrong with it.</summary>
     public sealed class LineRow : INotifyPropertyChanged
     {
+        /// <summary>The start and end as typed, the words, and anything wrong with the line.</summary>
         private string _start, _end, _text, _problem;
+        /// <summary>True while the line is being played.</summary>
         private bool _playing;
+        /// <summary>Who speaks it (-1: nobody was looked for).</summary>
         private int _speaker = -1;
 
+        /// <summary>When the line starts, as typed.</summary>
         public string Start { get => _start; set => Set(ref _start, value); }
+        /// <summary>When the line ends, as typed.</summary>
         public string End { get => _end; set => Set(ref _end, value); }
+        /// <summary>The words of the line.</summary>
         public string Text { get => _text; set => Set(ref _text, value); }
+        /// <summary>What's wrong with the line's times, if anything (shown under it).</summary>
         public string Problem { get => _problem; set => Set(ref _problem, value, false); }
+        /// <summary>True while the line is being played (it's marked).</summary>
         public bool Playing { get => _playing; set => Set(ref _playing, value, false); }
         /// <summary>Who speaks the line (an index into the window's speakers), -1 when nobody was looked for.</summary>
         public int Speaker { get => _speaker; set => Set(ref _speaker, value); }
 
+        /// <summary>The start in milliseconds (0 when it can't be read).</summary>
         public long StartMs => TextEdits.ParseTime(Start) ?? 0;
+        /// <summary>The end in milliseconds (the start when it can't be read).</summary>
         public long EndMs => TextEdits.ParseTime(End) ?? StartMs;
 
+        /// <summary>Lets the list know a value changed.</summary>
         public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>A change made by the person (not a note the window adds itself).</summary>
         public event Action Edited;
 
+        /// <summary>Changes a value and tells the list; `edit` says whether it's a change made by the person.</summary>
         private void Set<T>(ref T field, T value, bool edit = true, [CallerMemberName] string name = null)
         {
             if (EqualityComparer<T>.Default.Equals(field, value)) return;
@@ -50,6 +64,7 @@ namespace Kudutext.Views
     /// <summary>A speaker's name while the text is checked (renaming it changes every line of theirs at once).</summary>
     public sealed class SpeakerName : INotifyPropertyChanged
     {
+        /// <summary>The name as typed.</summary>
         private string _name;
         public string Name
         {
@@ -63,7 +78,9 @@ namespace Kudutext.Views
             }
         }
 
+        /// <summary>Lets the lists know the name changed.</summary>
         public event PropertyChangedEventHandler PropertyChanged;
+        /// <summary>Raised when the name changes.</summary>
         public event Action Renamed;
     }
 
@@ -73,22 +90,39 @@ namespace Kudutext.Views
     /// </summary>
     public sealed class EditorWindow : Window
     {
+        /// <summary>The file whose text this is.</summary>
         private readonly Job _job;
+        /// <summary>The text as it was kept, before any change.</summary>
         private readonly Transcript _original;
+        /// <summary>The lines being checked.</summary>
         private readonly ObservableCollection<LineRow> _rows = new ObservableCollection<LineRow>();
+        /// <summary>The list of lines.</summary>
         private readonly ListBox _list;
+        /// <summary>The words to find.</summary>
         private readonly TextBox _find = new TextBox { Width = 180 };
+        /// <summary>What to put in their place.</summary>
         private readonly TextBox _replace = new TextBox { Width = 180 };
+        /// <summary>Find and replace only words with the same capitals.</summary>
         private readonly CheckBox _matchCase = new CheckBox { Content = "Match case", VerticalAlignment = VerticalAlignment.Center };
+        /// <summary>The line at the bottom: how many lines, how many need a look, unsaved changes.</summary>
         private readonly TextBlock _status = Ui.Subtle(string.Empty, 12.5, false);
+        /// <summary>A note at the top (what was replaced, why it can't be saved yet...).</summary>
         private readonly Border _note;
+        /// <summary>The words of that note.</summary>
         private readonly TextBlock _noteText = Ui.Text(string.Empty, 12.5, wrap: true);
+        /// <summary>Plays a line from the original recording.</summary>
         private readonly LinePlayer _player = new LinePlayer();
+        /// <summary>The speakers' names.</summary>
         private readonly ObservableCollection<SpeakerName> _speakers = new ObservableCollection<SpeakerName>();
+        /// <summary>A box to rename each speaker.</summary>
         private readonly WrapPanel _speakerBoxes = new WrapPanel();
+        /// <summary>True when the text says who speaks (speakers were looked for).</summary>
         private readonly bool _hasSpeakers;
+        /// <summary>The words box clicked last (where the cursor is, for Split).</summary>
         private TextBox _lastText;
+        /// <summary>True when there are changes not saved yet.</summary>
         private bool _dirty;
+        /// <summary>True while lines are being put in the list (not changes by the person).</summary>
         private bool _loading;
 
         /// <summary>For the self-test: close without asking about unsaved changes.</summary>
@@ -97,6 +131,7 @@ namespace Kudutext.Views
         /// <summary>Raised after a save, so the list can show the new number of lines.</summary>
         public event Action Saved;
 
+        /// <summary>Opens the window for a file's text.</summary>
         public EditorWindow(Window owner, Job job)
         {
             _job = job;
@@ -218,9 +253,13 @@ namespace Kudutext.Views
 
         // ================================================================ for the window and the self-test
 
+        /// <summary>The lines (for the self-test).</summary>
         public IList<LineRow> Rows => _rows;
+        /// <summary>True when there are changes not saved yet.</summary>
         public bool IsDirty => _dirty;
+        /// <summary>The note shown at the top, or null.</summary>
         public string Note => _note.Visibility == Visibility.Visible ? _noteText.Text : null;
+        /// <summary>True while a line is playing.</summary>
         public bool IsPlaying => _player.IsPlaying;
 
         public int Selected
@@ -236,8 +275,10 @@ namespace Kudutext.Views
         /// <summary>The speakers' names as they are now (empty when speakers weren't looked for).</summary>
         public IList<string> SpeakerNames => _speakers.Select((n, i) => string.IsNullOrWhiteSpace(n.Name) ? Speakers.DefaultName(i) : n.Name.Trim()).ToList();
 
+        /// <summary>Renames a speaker (every line of theirs changes at once).</summary>
         public void RenameSpeaker(int index, string name) => _speakers[index].Name = name;
 
+        /// <summary>Adds a speaker the voice check missed. Returns their number.</summary>
         public int AddSpeaker()
         {
             if (!_hasSpeakers) return -1;
@@ -246,6 +287,7 @@ namespace Kudutext.Views
             return _speakers.Count - 1;
         }
 
+        /// <summary>Adds a speaker with a box to rename them.</summary>
         private void AddSpeakerBox(string name)
         {
             var speaker = new SpeakerName { Name = name };
@@ -261,6 +303,7 @@ namespace Kudutext.Views
             _speakerBoxes.Children.Add(box.Margin(0, 0, 6, 6));
         }
 
+        /// <summary>Puts a text's lines in the list.</summary>
         private void Load(Transcript t)
         {
             _loading = true;
@@ -279,6 +322,7 @@ namespace Kudutext.Views
             UpdateStatus();
         }
 
+        /// <summary>A line for the list, which marks the text as changed when the person edits it.</summary>
         private LineRow NewRow(long start, long end, string text)
         {
             var row = new LineRow { Start = TextEdits.ShowTime(start), End = TextEdits.ShowTime(end), Text = text };
@@ -292,6 +336,7 @@ namespace Kudutext.Views
             return row;
         }
 
+        /// <summary>Checks every line's times, and notes what's wrong under it.</summary>
         private void CheckProblems()
         {
             long? previous = null;
@@ -303,6 +348,7 @@ namespace Kudutext.Views
             }
         }
 
+        /// <summary>The line at the bottom, and the window's title (with a dot for unsaved changes).</summary>
         private void UpdateStatus()
         {
             var problems = _rows.Count(r => r.Problem != null);
@@ -313,6 +359,7 @@ namespace Kudutext.Views
             Title = (_dirty ? "• " : string.Empty) + Lang.T("Check the text · {0}", _job.FileName);
         }
 
+        /// <summary>Shows a note at the top (null hides it).</summary>
         private void ShowNote(string text)
         {
             _noteText.Text = text;
@@ -321,6 +368,7 @@ namespace Kudutext.Views
 
         // ================================================================ editing
 
+        /// <summary>The line chosen, or null.</summary>
         private LineRow Current => _list.SelectedItem as LineRow;
 
         /// <summary>Splits the chosen line where the cursor is in its words (or at <paramref name="caret"/>).</summary>
@@ -353,6 +401,7 @@ namespace Kudutext.Views
             return true;
         }
 
+        /// <summary>Joins the chosen line with the next one. False when there's no next line.</summary>
         public bool JoinWithNext()
         {
             var row = Current;
@@ -372,6 +421,7 @@ namespace Kudutext.Views
             return true;
         }
 
+        /// <summary>Removes the chosen line.</summary>
         public bool RemoveSelected()
         {
             var index = Current == null ? -1 : _rows.IndexOf(Current);
@@ -382,6 +432,7 @@ namespace Kudutext.Views
             return true;
         }
 
+        /// <summary>Replaces words everywhere. Returns how many were replaced.</summary>
         public int ReplaceAll(string find = null, string replacement = null)
         {
             find = find ?? _find.Text;
@@ -405,6 +456,7 @@ namespace Kudutext.Views
             return total;
         }
 
+        /// <summary>Chooses the next line with the words. False when none has them.</summary>
         public bool FindNext(string find = null)
         {
             find = find ?? _find.Text;
@@ -422,6 +474,7 @@ namespace Kudutext.Views
             return false;
         }
 
+        /// <summary>After a change: times checked again and the bottom line updated.</summary>
         private void Changed()
         {
             _dirty = true;
@@ -431,6 +484,7 @@ namespace Kudutext.Views
 
         // ================================================================ hearing a line
 
+        /// <summary>Plays the chosen line from the original recording.</summary>
         public void PlaySelected()
         {
             var row = Current ?? _rows.FirstOrDefault();
@@ -486,6 +540,9 @@ namespace Kudutext.Views
 
         // ================================================================ how a line looks
 
+        /// <summary>
+        /// How each line looks in the list: play button, start, end, speaker, words, and its problem under it.
+        /// </summary>
         private DataTemplate RowTemplate()
         {
             var grid = new FrameworkElementFactory(typeof(Grid));
@@ -563,6 +620,7 @@ namespace Kudutext.Views
             return new DataTemplate { VisualTree = border };
         }
 
+        /// <summary>A box in the line's template, showing one of its values.</summary>
         private static FrameworkElementFactory Box(string property, int column, string name, bool time)
         {
             var box = new FrameworkElementFactory(typeof(TextBox));
@@ -579,6 +637,7 @@ namespace Kudutext.Views
             return box;
         }
 
+        /// <summary>The nearest part around `d` of the kind asked for.</summary>
         private static T Ancestor<T>(DependencyObject d) where T : DependencyObject
         {
             while (d != null && !(d is T)) d = d is Visual || d is System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetParent(d) : LogicalTreeHelper.GetParent(d);
@@ -587,26 +646,35 @@ namespace Kudutext.Views
 
         private sealed class ShowWhenText : IValueConverter
         {
+            /// <summary>Shows the problem line only when there's a problem.</summary>
             public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) =>
                 string.IsNullOrEmpty(value as string) ? Visibility.Collapsed : Visibility.Visible;
 
+            /// <summary>Nothing to turn back: only shown.</summary>
             public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) => throw new NotSupportedException();
         }
 
         private sealed class PlayingBrush : IValueConverter
         {
+            /// <summary>The line being played gets the accent colour down its side.</summary>
             public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) =>
                 value is bool b && b ? Ui.Brush("Accent") : Brushes.Transparent;
 
+            /// <summary>Nothing to turn back: only shown.</summary>
             public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) => throw new NotSupportedException();
         }
 
         private sealed class Command : ICommand
         {
+            /// <summary>What the key does.</summary>
             private readonly Action _run;
+            /// <summary>A key that does `run`.</summary>
             public Command(Action run) => _run = run;
+            /// <summary>The key always works, so this never changes.</summary>
             public event EventHandler CanExecuteChanged { add { } remove { } }
+            /// <summary>The key always works.</summary>
             public bool CanExecute(object parameter) => true;
+            /// <summary>Does what the key does.</summary>
             public void Execute(object parameter) => _run();
         }
     }

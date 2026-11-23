@@ -1,3 +1,4 @@
+// Every language file has every text, with the same places to fill in.
 using System;
 using System.IO;
 using System.Linq;
@@ -20,13 +21,16 @@ namespace Kudutext.Tests
             }
         }
 
+        /// <summary>Fails the test with `what` when it isn't ok.</summary>
         private static void Check(bool ok, string what)
         {
             if (!ok) throw new Exception("Check failed: " + what);
         }
 
+        /// <summary>The places to fill in ("{0}", "{1}"...) that a text has.</summary>
         private static string Holes(string s) => string.Join(",", Regex.Matches(s, @"\{\d\}").Cast<Match>().Select(m => m.Value).Distinct().OrderBy(x => x));
 
+        /// <summary>Checks every language file against the texts the app uses.</summary>
         public static void Run()
         {
             var counts = Lang.All.Where(l => l.Code != "en").Select(l => File.ReadAllLines(Path.Combine(LangDir, l.Code + ".txt")).Length).ToList();

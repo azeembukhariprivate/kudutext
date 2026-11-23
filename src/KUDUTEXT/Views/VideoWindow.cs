@@ -1,3 +1,5 @@
+// The "Put subtitles into the video" window: as a track players can switch on and off, or written into the picture,
+// saved beside the video.
 using System;
 using System.IO;
 using System.Linq;
@@ -18,6 +20,7 @@ namespace Kudutext.Views
         /// <summary>For the self-test: where FFmpeg is downloaded from instead of the usual address.</summary>
         public static string UrlOverride { get; set; }
 
+        /// <summary>Downloads FFmpeg (once) with progress.</summary>
         public static async Task Get(Action<long, long> progress, CancellationToken cancel)
         {
             ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
@@ -36,24 +39,39 @@ namespace Kudutext.Views
     /// </summary>
     public sealed class VideoWindow : Window
     {
+        /// <summary>The file whose subtitles go in.</summary>
         private readonly Job _job;
+        /// <summary>As a track.</summary>
         private readonly RadioButton _track;
+        /// <summary>Written into the picture.</summary>
         private readonly RadioButton _burn;
+        /// <summary>The size of the words in the picture.</summary>
         private readonly WrapPanel _sizes = new WrapPanel { Margin = new Thickness(0, 4, 0, 0) };
+        /// <summary>The row with those sizes (only for writing into the picture).</summary>
         private readonly StackPanel _sizeRow;
+        /// <summary>Where the new video goes.</summary>
         private readonly TextBlock _where = Ui.Subtle(string.Empty, 12.5, true);
+        /// <summary>A note (progress, done, or what went wrong).</summary>
         private readonly Border _note;
+        /// <summary>The words of that note.</summary>
         private readonly TextBlock _noteText = Ui.Text(string.Empty, 12.5, wrap: true);
+        /// <summary>How far it's got.</summary>
         private readonly ProgressBar _bar = new ProgressBar { Maximum = 1000, Margin = new Thickness(0, 10, 0, 0), Visibility = Visibility.Collapsed };
+        /// <summary>Makes the video.</summary>
         private readonly Button _start;
+        /// <summary>Stops it.</summary>
         private readonly Button _stop;
+        /// <summary>Shows the new video in File Explorer.</summary>
         private readonly Button _show;
+        /// <summary>Stops the work (null when none is running).</summary>
         private CancellationTokenSource _cancel;
+        /// <summary>The size of the words chosen: small, normal or large.</summary>
         private string _size = "normal";
 
         /// <summary>For the self-test: close without asking while working.</summary>
         public bool SkipClosePrompt { get; set; }
 
+        /// <summary>Opens the window for a file.</summary>
         public VideoWindow(Window owner, Job job)
         {
             _job = job;
@@ -122,10 +140,14 @@ namespace Kudutext.Views
             };
         }
 
+        /// <summary>True while the video is being made.</summary>
         public bool IsRunning => _cancel != null;
+        /// <summary>The last video made.</summary>
         public string LastOutput { get; private set; }
+        /// <summary>The note shown.</summary>
         public string Note => _noteText.Text;
 
+        /// <summary>A choice with a title and a line about it.</summary>
         private static RadioButton Option(string title, string text)
         {
             var content = Ui.Column(Ui.Text(title, 13.5, bold: true), Ui.Subtle(text, 12, true).Margin(0, 3, 0, 0));
@@ -134,8 +156,10 @@ namespace Kudutext.Views
             return r;
         }
 
+        /// <summary>The way chosen: a track, or into the picture.</summary>
         private VideoMode Mode => _burn.IsChecked == true ? VideoMode.Burn : VideoMode.Track;
 
+        /// <summary>Shows the options that fit the way chosen, and where the video goes.</summary>
         private void Refresh()
         {
             _sizeRow.Visibility = Mode == VideoMode.Burn ? Visibility.Visible : Visibility.Collapsed;
@@ -149,6 +173,7 @@ namespace Kudutext.Views
             foreach (UIElement c in _sizes.Children) c.IsEnabled = !IsRunning;
         }
 
+        /// <summary>Shows a note, with a progress bar when `progress` is given (0 to 1).</summary>
         private void ShowNote(string text, double progress = -1)
         {
             _noteText.Text = text;
@@ -156,6 +181,7 @@ namespace Kudutext.Views
             if (progress >= 0) _bar.Value = progress * 10;
         }
 
+        /// <summary>Stops making the video.</summary>
         public void Stop() => _cancel?.Cancel();
 
         /// <summary>Makes the new video. True when it was saved.</summary>

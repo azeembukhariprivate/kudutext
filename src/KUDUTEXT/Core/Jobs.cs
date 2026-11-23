@@ -1,3 +1,4 @@
+// The list of files to turn into text: each one's choices and state, kept in jobs.json so the list is there next time.
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -51,6 +52,7 @@ namespace Kudutext.Core
             set => StateText = value.ToString().ToLowerInvariant();
         }
 
+        /// <summary>The file's name, without its folder.</summary>
         public string FileName => Path.GetFileName(File ?? string.Empty);
     }
 
@@ -63,7 +65,9 @@ namespace Kudutext.Core
             [DataMember(Name = "jobs", Order = 1)] public List<Job> Jobs { get; set; }
         }
 
+        /// <summary>KUDUTEXT's own folder (%LocalAppData%\KUDUTEXT).</summary>
         public static string Folder { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KUDUTEXT");
+        /// <summary>Where the list is kept.</summary>
         public static string ListFile => Path.Combine(Folder, "jobs.json");
 
         /// <summary>Where a job's text is kept (what was said, line by line), so it can be checked and saved again later.</summary>
@@ -76,6 +80,7 @@ namespace Kudutext.Core
             ".mp3", ".wav", ".m4a", ".aac", ".flac", ".ogg", ".opus", ".wma", ".amr"
         };
 
+        /// <summary>True for kinds of file KUDUTEXT can take (videos and recordings).</summary>
         public static bool CanTake(string file) => Kinds.Contains(Path.GetExtension(file ?? string.Empty).ToLowerInvariant());
 
         /// <summary>Kinds the speech engine can read by itself when Windows can't read them.</summary>
@@ -102,6 +107,7 @@ namespace Kudutext.Core
             }
         }
 
+        /// <summary>Keeps the list (written to a new file first, so a crash never leaves half a list).</summary>
         public static void Save(IEnumerable<Job> jobs)
         {
             try

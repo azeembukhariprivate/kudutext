@@ -1,3 +1,5 @@
+// The speech engine (whisper.cpp's whisper-cli.exe, next to KUDUTEXT): run with the right arguments, its progress read,
+// its answer read.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,6 +17,7 @@ namespace Kudutext.Core
     /// </summary>
     public static class Whisper
     {
+        /// <summary>The engine's progress lines ("progress = 42%").</summary>
         private static readonly Regex ProgressLine = new Regex(@"progress\s*=\s*(\d+)%", RegexOptions.CultureInvariant);
 
         /// <summary>The arguments for whisper-cli: the model, the sound, the language (or "auto"), translating, threads, JSON out.</summary>
@@ -104,6 +107,7 @@ namespace Kudutext.Core
 
     public sealed class WhisperException : Exception
     {
+        /// <summary>The speech engine failed: the message says why, in plain words.</summary>
         public WhisperException(string message) : base(message)
         {
         }

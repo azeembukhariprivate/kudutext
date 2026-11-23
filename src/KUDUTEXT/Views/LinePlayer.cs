@@ -1,3 +1,4 @@
+// Plays one line of the original recording (from its start to its end), for checking the text.
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -11,12 +12,15 @@ namespace Kudutext.Views
     /// <summary>Plays one line's piece of the original video or recording, to hear what was said.</summary>
     public sealed class LinePlayer : IDisposable
     {
+        /// <summary>The sound output.</summary>
         private WaveOutEvent _out;
+        /// <summary>The recording being read.</summary>
         private WaveStream _reader;
 
         /// <summary>The piece has finished playing (or was stopped).</summary>
         public event Action Finished;
 
+        /// <summary>True while a line is playing.</summary>
         public bool IsPlaying => _out?.PlaybackState == PlaybackState.Playing;
 
         /// <summary>Plays from <paramref name="startMs"/> to <paramref name="endMs"/>. Throws AudioException with a plain reason.</summary>
@@ -51,6 +55,7 @@ namespace Kudutext.Views
             }
         }
 
+        /// <summary>Stops playing and lets the recording go.</summary>
         public void Stop()
         {
             try { _out?.Stop(); }
@@ -61,6 +66,7 @@ namespace Kudutext.Views
             _reader = null;
         }
 
+        /// <summary>Stops playing.</summary>
         public void Dispose() => Stop();
     }
 }

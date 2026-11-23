@@ -1,3 +1,5 @@
+// A tiny web server on this PC for the tests and the self-test: serves made-up downloads, and can drop the connection
+// part way to test carrying on.
 using System;
 using System.Collections.Concurrent;
 using System.Globalization;
@@ -16,11 +18,16 @@ namespace Kudutext.Core
     /// </summary>
     public sealed class TestServer : IDisposable
     {
+        /// <summary>Listens on this PC only, on a free port.</summary>
         private readonly TcpListener _listener = new TcpListener(IPAddress.Loopback, 0);
+        /// <summary>The files it serves, by path.</summary>
         private readonly ConcurrentDictionary<string, byte[]> _files = new ConcurrentDictionary<string, byte[]>();
+        /// <summary>How many more downloads to cut short.</summary>
         private int _drops;
+        /// <summary>Where to cut them (bytes in).</summary>
         private long _dropAfter;
 
+        /// <summary>Starts the server.</summary>
         public TestServer()
         {
             _listener.Start();
@@ -28,12 +35,19 @@ namespace Kudutext.Core
             Task.Run(Accept);
         }
 
+        /// <summary>The port it listens on.</summary>
         public int Port { get; }
+        /// <summary>How many requests it has had.</summary>
         public int Requests;
+        /// <summary>
+        /// The ranges asked for ("bytes=1000-"), to check a download carried on from where it stopped.
+        /// </summary>
         public ConcurrentQueue<string> RangesAsked { get; } = new ConcurrentQueue<string>();
 
+        /// <summary>The address of a file it serves.</summary>
         public string Url(string path) => "http://127.0.0.1:" + Port + "/" + path.TrimStart('/');
 
+        /// <summary>Adds a file to serve.</summary>
         public void Add(string path, byte[] body) => _files["/" + path.TrimStart('/')] = body;
 
         /// <summary>The next <paramref name="times"/> answers stop after <paramref name="bytes"/> bytes.</summary>
@@ -43,6 +57,7 @@ namespace Kudutext.Core
             _drops = times;
         }
 
+        /// <summary>Takes connections one after another.</summary>
         private async Task Accept()
         {
             while (true)
@@ -54,6 +69,7 @@ namespace Kudutext.Core
             }
         }
 
+        /// <summary>Answers one request: the file (or the part asked for), or "not found".</summary>
         private async Task Serve(TcpClient client)
         {
             using (client)
@@ -99,12 +115,14 @@ namespace Kudutext.Core
             }
         }
 
+        /// <summary>Writes text to the connection.</summary>
         private static Task Write(Stream s, string text)
         {
             var b = Encoding.ASCII.GetBytes(text);
             return s.WriteAsync(b, 0, b.Length);
         }
 
+        /// <summary>Stops the server.</summary>
         public void Dispose() => _listener.Stop();
     }
 }

@@ -1,3 +1,5 @@
+// The sums behind checking and correcting the text: reading and showing times, splitting and joining lines, replacing
+// words, and checking times before saving.
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -10,7 +12,9 @@ namespace Kudutext.Core
     /// <summary>The small pieces of checking and correcting the text: times, splitting and joining lines, replacing words.</summary>
     public static class TextEdits
     {
+        /// <summary>A time typed as seconds ("75" or "75.5").</summary>
         private static readonly Regex Seconds = new Regex(@"^\d+(?:[.,]\d{1,3})?$", RegexOptions.CultureInvariant);
+        /// <summary>A whole number.</summary>
         private static readonly Regex Whole = new Regex(@"^\d+$", RegexOptions.CultureInvariant);
 
         /// <summary>"00:01:02.500", "1:02,5", "62.5" or "62" as milliseconds; null when it isn't a time.</summary>
@@ -50,6 +54,7 @@ namespace Kudutext.Core
             return start + (long)Math.Round((end - start) * (double)firstLength / (firstLength + secondLength));
         }
 
+        /// <summary>Two lines' words joined with a space.</summary>
         public static string JoinText(string first, string second) =>
             string.Join(" ", new[] { first, second }.Select(s => (s ?? string.Empty).Trim()).Where(s => s.Length > 0));
 
@@ -71,6 +76,7 @@ namespace Kudutext.Core
             return count == 0 ? text : sb.Append(text, at, text.Length - at).ToString();
         }
 
+        /// <summary>True when the text has the words looked for.</summary>
         public static bool Contains(string text, string find, bool matchCase) =>
             !string.IsNullOrEmpty(find) && (text ?? string.Empty).IndexOf(find, matchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase) >= 0;
 

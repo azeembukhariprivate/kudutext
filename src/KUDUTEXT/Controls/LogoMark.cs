@@ -1,3 +1,4 @@
+// The KUDUTEXT logo, drawn from shapes so it's sharp at any size.
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -10,6 +11,7 @@ namespace Kudutext.Controls
     /// <summary>The KUDUTEXT mark: a speech bubble with lines of text in it. Uses the text colour.</summary>
     public class LogoMark : Viewbox
     {
+        /// <summary>The logo at a size, in the text colour of where it sits.</summary>
         public LogoMark(double size = 40)
         {
             Width = size;
@@ -37,6 +39,7 @@ namespace Kudutext.Controls
             Child = canvas;
         }
 
+        /// <summary>Makes a shape take the logo's text colour.</summary>
         private void Bind(Shape shape, DependencyProperty property) =>
             shape.SetBinding(property, new Binding { Path = new PropertyPath(TextElement.ForegroundProperty), Source = this });
     }
@@ -44,6 +47,7 @@ namespace Kudutext.Controls
     /// <summary>The app tile: the mark in white on an orange rounded square.</summary>
     public static class LogoTile
     {
+        /// <summary>The logo on a rounded tile, as at the top of the main window.</summary>
         public static Border Create(double size)
         {
             var mark = new LogoMark(size);

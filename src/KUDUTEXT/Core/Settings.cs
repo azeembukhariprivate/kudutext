@@ -1,3 +1,4 @@
+// KUDUTEXT's settings, kept in the registry (HKEY_CURRENT_USER\Software\KUDUTEXT).
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -5,13 +6,16 @@ using Microsoft.Win32;
 
 namespace Kudutext.Core
 {
+    /// <summary>Light, dark, or the same as Windows.</summary>
     public enum ThemeMode { System, Light, Dark }
 
     /// <summary>Settings are stored under HKEY_CURRENT_USER, so no administrator rights are needed.</summary>
     public static class Settings
     {
+        /// <summary>Where the settings are kept in the registry.</summary>
         private const string KeyPath = @"Software\KUDUTEXT";
 
+        /// <summary>A setting, or `fallback` when it isn't there or can't be read.</summary>
         private static string Get(string name, string fallback)
         {
             try
@@ -27,6 +31,7 @@ namespace Kudutext.Core
             }
         }
 
+        /// <summary>Keeps a setting (quietly does nothing if the registry can't be written).</summary>
         private static void Set(string name, string value)
         {
             try
@@ -42,11 +47,15 @@ namespace Kudutext.Core
             }
         }
 
+        /// <summary>A yes/no setting.</summary>
         private static bool GetBool(string name, bool fallback) => Get(name, fallback ? "1" : "0") == "1";
+        /// <summary>Keeps a yes/no setting.</summary>
         private static void SetBool(string name, bool value) => Set(name, value ? "1" : "0");
 
+        /// <summary>A number setting.</summary>
         private static int GetInt(string name, int fallback) => int.TryParse(Get(name, fallback.ToString()), out var v) ? v : fallback;
 
+        /// <summary>A setting that is one of a set of choices.</summary>
         private static T GetEnum<T>(string name, T fallback) where T : struct =>
             Enum.TryParse(Get(name, fallback.ToString()), out T v) ? v : fallback;
 

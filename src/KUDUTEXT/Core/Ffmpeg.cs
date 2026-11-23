@@ -1,3 +1,5 @@
+// FFmpeg, the free video tool: downloaded once (pinned by address, size and checksum) to put subtitles into videos and
+// read sound Windows can't, and run with the right arguments.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -16,9 +18,13 @@ namespace Kudutext.Core
     /// <summary>The FFmpeg download: a free video tool, fetched once, the first time it's needed.</summary>
     public sealed class FfmpegPackage
     {
+        /// <summary>FFmpeg's version.</summary>
         public string Version { get; set; }
+        /// <summary>Where it's downloaded from.</summary>
         public string Url { get; set; }
+        /// <summary>The download's size in bytes.</summary>
         public long Size { get; set; }
+        /// <summary>The download's SHA-256 checksum (it's kept only when it matches).</summary>
         public string Sha256 { get; set; }
     }
 
@@ -39,6 +45,7 @@ namespace Kudutext.Core
     /// </summary>
     public static class Ffmpeg
     {
+        /// <summary>The FFmpeg build used: Gyan's essentials build for Windows, pinned.</summary>
         public static readonly FfmpegPackage Package = new FfmpegPackage
         {
             Version = "9.0.2",
@@ -47,7 +54,9 @@ namespace Kudutext.Core
             Sha256 = "60f467265b1e312373dbcd92200c2618a74850f98d3d078e94296bb3fa2047ba"
         };
 
+        /// <summary>Where FFmpeg is kept once downloaded (%LocalAppData%\KUDUTEXT\FFmpeg).</summary>
         public static string Folder { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KUDUTEXT", "FFmpeg");
+        /// <summary>The ffmpeg.exe in that folder.</summary>
         public static string ExePath => Path.Combine(Folder, "ffmpeg.exe");
 
         /// <summary>FFmpeg is here and came from a download whose checksum matched (a small ".ok" note says which).</summary>
@@ -100,6 +109,10 @@ namespace Kudutext.Core
 
         // ================================================================ what to ask FFmpeg
 
+        /// <summary>
+        /// What every FFmpeg run starts with: no banner, no questions on the keyboard, replace the output (which is a
+        /// new file KUDUTEXT made).
+        /// </summary>
         private static readonly string[] Start = { "-hide_banner", "-nostdin", "-y" };
 
         /// <summary>Reads a file's sound into the 16 kHz mono WAV the speech engine listens to.</summary>
@@ -112,6 +125,7 @@ namespace Kudutext.Core
         /// <summary>Kinds of file that have a picture (subtitles can only go into these).</summary>
         public static readonly IReadOnlyList<string> VideoKinds = new[] { ".mp4", ".mkv", ".mov", ".avi", ".wmv", ".webm", ".m4v", ".mpg", ".mpeg", ".3gp", ".flv", ".ts" };
 
+        /// <summary>True for video files (by their ending).</summary>
         public static bool IsVideo(string file) => VideoKinds.Contains(Path.GetExtension(file ?? string.Empty).ToLowerInvariant());
 
         /// <summary>The new video's name: "talk (subtitles).mp4" for a track, "talk (subtitles in picture).mp4" when written in.</summary>
@@ -170,6 +184,9 @@ namespace Kudutext.Core
             }).ToList();
         }
 
+        /// <summary>
+        /// Two-letter language codes to the three-letter ones video files use for a subtitle track's language.
+        /// </summary>
         private static readonly Dictionary<string, string> Iso3 = new Dictionary<string, string>
         {
             ["en"] = "eng", ["ml"] = "mal", ["hi"] = "hin", ["ta"] = "tam", ["te"] = "tel", ["kn"] = "kan", ["bn"] = "ben", ["mr"] = "mar", ["gu"] = "guj",
@@ -184,7 +201,9 @@ namespace Kudutext.Core
 
         // ================================================================ reading what FFmpeg says
 
+        /// <summary>FFmpeg's line saying how long the input is.</summary>
         private static readonly Regex DurationLine = new Regex(@"Duration:\s*(\d+):(\d{2}):(\d{2}(?:\.\d+)?)", RegexOptions.CultureInvariant);
+        /// <summary>FFmpeg's progress lines, saying how far it's got.</summary>
         private static readonly Regex TimeLine = new Regex(@"time=\s*(\d+):(\d{2}):(\d{2}(?:\.\d+)?)", RegexOptions.CultureInvariant);
 
         /// <summary>The length in a "Duration: 00:01:02.50, start: ..." line, in seconds; -1 when there isn't one.</summary>
@@ -193,6 +212,7 @@ namespace Kudutext.Core
         /// <summary>How far it's got in a "frame= ... time=00:00:12.34 ..." line, in seconds; -1 when there isn't one.</summary>
         public static double Position(string line) => Seconds(TimeLine.Match(line ?? string.Empty));
 
+        /// <summary>A time FFmpeg wrote (hours:minutes:seconds) in seconds.</summary>
         private static double Seconds(Match m) => m.Success
             ? int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture) * 3600 + int.Parse(m.Groups[2].Value, CultureInfo.InvariantCulture) * 60
               + double.Parse(m.Groups[3].Value, CultureInfo.InvariantCulture)
@@ -253,6 +273,7 @@ namespace Kudutext.Core
 
     public sealed class FfmpegException : Exception
     {
+        /// <summary>FFmpeg failed: the message says why, in plain words.</summary>
         public FfmpegException(string message) : base(message)
         {
         }

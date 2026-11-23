@@ -1,3 +1,5 @@
+// "KUDUTEXT.exe --self-test": drives the real app on Windows (reading sound, downloads, real speech to text, its files,
+// checking the text, speakers, subtitles into a video, every window), writing self-test.log and keeping screenshots.
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -20,12 +22,19 @@ namespace Kudutext.Views
     /// </summary>
     public static class SelfTest
     {
+        /// <summary>True while the self-test runs (dialogs are written to the log instead of shown).</summary>
         public static bool Running { get; private set; }
+        /// <summary>What went wrong, step by step.</summary>
         public static List<string> Errors { get; } = new List<string>();
 
+        /// <summary>The log written to self-test.log.</summary>
         private static StringBuilder _log;
+        /// <summary>A folder for the self-test's files, removed at the end.</summary>
         private static string _temp;
 
+        /// <summary>
+        /// Runs every step with the tiny model, the samples and FFmpeg given. Returns 0 when all passed.
+        /// </summary>
         public static int Run(string modelFile, string samples, string ffmpegZip)
         {
             Running = true;
@@ -89,10 +98,14 @@ namespace Kudutext.Views
             return Finish(savedFolder, savedModels, saved);
         }
 
+        /// <summary>FFmpeg's download, served by the test server.</summary>
         private static byte[] _ffmpegZip;
+        /// <summary>The folder with the sample recordings.</summary>
         private static string _samplesFolder;
+        /// <summary>The person's own speaker settings, put back at the end.</summary>
         private static (bool Find, int Count) _savedSpeakers;
 
+        /// <summary>Puts the person's settings back, writes the log, and returns 0 when all passed.</summary>
         private static int Finish(string folder, string models, (string Model, string Language, bool Translate, List<string> Formats, string OutputFolder) saved)
         {
             JobList.Folder = folder;
@@ -115,6 +128,7 @@ namespace Kudutext.Views
 
         // ================================================================== reading sound
 
+        /// <summary>Reading sound: WAV, MP3, and a file with no sound.</summary>
         private static void Sound()
         {
             Step("Read a WAV file (stereo, 44.1 kHz) into 16 kHz mono", () =>
@@ -163,6 +177,9 @@ namespace Kudutext.Views
 
         // ================================================================== the window
 
+        /// <summary>
+        /// The windows and the real work: downloads, speech to text, the files, checking the text, speakers.
+        /// </summary>
         private static void Screens(string mp3, byte[] model)
         {
             MainWindow main = null;
@@ -473,6 +490,7 @@ namespace Kudutext.Views
 
         // ================================================================== FFmpeg and videos
 
+        /// <summary>Videos: FFmpeg downloaded, subtitles as a track and in the picture, stopping part way.</summary>
         private static void Videos(MainWindow main, TestServer server)
         {
             server.Add("ffmpeg.zip", _ffmpegZip);
@@ -646,6 +664,7 @@ namespace Kudutext.Views
             return path;
         }
 
+        /// <summary>Runs one step and notes in the log whether it passed.</summary>
         private static void Step(string name, Action action)
         {
             var before = Errors.Count;
@@ -665,13 +684,16 @@ namespace Kudutext.Views
             }
         }
 
+        /// <summary>A note in the log under the step.</summary>
         private static void Note(string text) => _log.AppendLine("      " + text);
 
+        /// <summary>Fails the step with `what` when the condition is false.</summary>
         private static void Expect(bool condition, string what)
         {
             if (!condition) throw new Exception("expected " + what);
         }
 
+        /// <summary>Waits (letting the window work) until a condition is true, or fails after `seconds`.</summary>
         private static void Wait(Func<bool> condition, int seconds)
         {
             var until = DateTime.UtcNow.AddSeconds(seconds);
@@ -684,6 +706,7 @@ namespace Kudutext.Views
             Pump();
         }
 
+        /// <summary>Lets the window do what's waiting (drawing, events).</summary>
         private static void Pump()
         {
             foreach (Window w in Application.Current.Windows) w.UpdateLayout();
@@ -692,6 +715,7 @@ namespace Kudutext.Views
             Application.Current.Dispatcher.Invoke(() => { }, DispatcherPriority.ContextIdle);
         }
 
+        /// <summary>Puts a window off the screen, so the self-test doesn't get in the way.</summary>
         private static void OffScreen(Window w)
         {
             w.WindowStartupLocation = WindowStartupLocation.Manual;
@@ -702,6 +726,7 @@ namespace Kudutext.Views
             w.ShowInTaskbar = false;
         }
 
+        /// <summary>Shows a window for a moment, takes its picture, and closes it.</summary>
         private static void Show(Window w)
         {
             OffScreen(w);

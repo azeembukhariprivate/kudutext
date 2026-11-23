@@ -6,6 +6,7 @@ namespace Kudutext.Core
     /// <summary>The languages whisper understands, by their code, with their names in English (A to Z after "Find it by itself").</summary>
     public static class Languages
     {
+        /// <summary>Each speech language's code and name, as the speech engine knows them.</summary>
         private static readonly string[] Pairs =
         {
             "af", "Afrikaans", "sq", "Albanian", "am", "Amharic", "ar", "Arabic", "hy", "Armenian", "as", "Assamese", "az", "Azerbaijani",
@@ -30,8 +31,12 @@ namespace Kudutext.Core
                 .Concat(Enumerable.Range(0, Pairs.Length / 2).Select(i => new KeyValuePair<string, string>(Pairs[i * 2], Pairs[i * 2 + 1])))
                 .ToList();
 
+        /// <summary>
+        /// A language's name by its code ("ml" gives "Malayalam"); the code itself when it isn't known.
+        /// </summary>
         public static string Name(string code) => All.FirstOrDefault(p => p.Key == code).Value ?? code;
 
+        /// <summary>True for a language code the speech engine knows.</summary>
         public static bool Known(string code) => All.Any(p => p.Key == code);
     }
 }

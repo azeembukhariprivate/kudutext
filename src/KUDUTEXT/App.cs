@@ -1,3 +1,5 @@
+// The app's start: reads the command line (files to add, the self-test), keeps to one running copy, applies the theme
+// and language, and catches errors nobody expected.
 using System;
 using System.IO;
 using System.Linq;
@@ -42,6 +44,7 @@ namespace Kudutext
             }
         }
 
+        /// <summary>A path made whole (relative to the folder KUDUTEXT was started in).</summary>
         private static string Full(string path)
         {
             try { return Path.GetFullPath(path); }
@@ -51,6 +54,7 @@ namespace Kudutext
 
     public sealed class App : Application
     {
+        /// <summary>Opens the main window with the files given (or hands them to the copy already running).</summary>
         public int Run(string[] files)
         {
             Startup += (s, e) =>
@@ -64,6 +68,10 @@ namespace Kudutext
             return Run();
         }
 
+        /// <summary>
+        /// Runs the self-test with the tiny speech model, the sample recordings and FFmpeg given, and ends with 0 when
+        /// it passed.
+        /// </summary>
         public int RunSelfTest(string model, string samples, string ffmpeg)
         {
             var code = 1;
@@ -78,6 +86,7 @@ namespace Kudutext
             return code;
         }
 
+        /// <summary>The theme, the language and the error catchers, set up once.</summary>
         private void Init()
         {
             ShutdownMode = ShutdownMode.OnMainWindowClose;
@@ -88,6 +97,9 @@ namespace Kudutext
             ThemeManager.WatchSystem();
         }
 
+        /// <summary>
+        /// An error nobody expected: told in plain words and written to the log, instead of the app just closing.
+        /// </summary>
         private void OnUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
             if (SelfTest.Running)

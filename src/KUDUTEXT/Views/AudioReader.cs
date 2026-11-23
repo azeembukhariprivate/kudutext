@@ -1,3 +1,5 @@
+// Reading the sound of any video or recording into the 16 kHz, one-channel WAV the speech engine wants: WAV directly,
+// the rest through Windows, else FFmpeg.
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -15,8 +17,12 @@ namespace Kudutext.Views
     /// </summary>
     public static class AudioReader
     {
+        /// <summary>The sound the speech engine wants: 16,000 samples a second, 16 bits, one channel.</summary>
         public static readonly WaveFormat Target = new WaveFormat(16000, 16, 1);
 
+        /// <summary>
+        /// Reads a file's sound into a WAV file, reporting progress. Returns how long it is, in seconds.
+        /// </summary>
         public static double Convert(string source, string wav, Action<int> progress, CancellationToken cancel)
         {
             try
@@ -64,6 +70,9 @@ namespace Kudutext.Views
             }
         }
 
+        /// <summary>
+        /// Writes a stream's sound as the WAV the engine wants, reporting progress and stopping when asked.
+        /// </summary>
         private static double Write(WaveStream stream, TimeSpan total, Func<TimeSpan> position, string wav, Action<int> progress, CancellationToken cancel)
         {
             ISampleProvider samples = stream.ToSampleProvider();
@@ -96,6 +105,7 @@ namespace Kudutext.Views
             return (double)written / Target.AverageBytesPerSecond;
         }
 
+        /// <summary>Deletes a file, ignoring any problem.</summary>
         private static void TryDelete(string file)
         {
             try { if (File.Exists(file)) File.Delete(file); }
@@ -105,10 +115,14 @@ namespace Kudutext.Views
         /// <summary>Mixes any number of channels down to one.</summary>
         private sealed class MonoMix : ISampleProvider
         {
+            /// <summary>The sound being made into one channel.</summary>
             private readonly ISampleProvider _source;
+            /// <summary>How many channels it has.</summary>
             private readonly int _channels;
+            /// <summary>Room for the samples read, before they're mixed.</summary>
             private float[] _buffer = new float[0];
 
+            /// <summary>Mixes any number of channels into one.</summary>
             public MonoMix(ISampleProvider source)
             {
                 _source = source;
@@ -116,8 +130,10 @@ namespace Kudutext.Views
                 WaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(source.WaveFormat.SampleRate, 1);
             }
 
+            /// <summary>One channel at the source's rate.</summary>
             public WaveFormat WaveFormat { get; }
 
+            /// <summary>Reads the source and mixes each moment's channels into one sample.</summary>
             public int Read(float[] buffer, int offset, int count)
             {
                 var need = count * _channels;
@@ -145,6 +161,9 @@ namespace Kudutext.Views
             return n > 0 && n < sb.Capacity && IsAscii(sb.ToString()) ? sb.ToString() : path;
         }
 
+        /// <summary>
+        /// True when a text has only plain English letters (the speech engine can't open paths with others).
+        /// </summary>
         private static bool IsAscii(string s)
         {
             foreach (var c in s)
@@ -153,6 +172,7 @@ namespace Kudutext.Views
             return true;
         }
 
+        /// <summary>Windows' call that gives a file's short "8.3" path, which has only plain letters.</summary>
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern int GetShortPathName(string longPath, StringBuilder shortPath, int bufferSize);
     }

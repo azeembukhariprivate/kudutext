@@ -1,3 +1,5 @@
+// What was said in a file: lines with their times (and speakers), kept as JSON, and written as SRT and VTT subtitles or
+// plain text.
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -26,7 +28,9 @@ namespace Kudutext.Core
             set => SpeakerPlusOne = value + 1;
         }
 
+        /// <summary>When the line starts.</summary>
         public TimeSpan Start => TimeSpan.FromMilliseconds(StartMs);
+        /// <summary>When the line ends.</summary>
         public TimeSpan End => TimeSpan.FromMilliseconds(EndMs);
     }
 
@@ -39,6 +43,7 @@ namespace Kudutext.Core
         /// <summary>The speakers' names ("Speaker 1", or names given in Check text), when speakers were looked for.</summary>
         [DataMember(Name = "speakers", Order = 3, EmitDefaultValue = false)] public List<string> SpeakerNames { get; set; }
 
+        /// <summary>True when speakers were looked for and the lines say who speaks.</summary>
         public bool HasSpeakers => SpeakerNames != null && SpeakerNames.Count > 0 && Segments.Any(s => s.Speaker >= 0);
 
         /// <summary>The name of the speaker of a line, or null.</summary>
@@ -68,12 +73,14 @@ namespace Kudutext.Core
             }
         }
 
+        /// <summary>Reads a kept text.</summary>
         public static Transcript Load(string file)
         {
             using (var s = File.OpenRead(file))
                 return (Transcript)new DataContractJsonSerializer(typeof(Transcript)).ReadObject(s);
         }
 
+        /// <summary>Keeps the text (written to a new file first, so a crash never leaves half a file).</summary>
         public void Save(string file)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(file));
@@ -115,6 +122,7 @@ namespace Kudutext.Core
             [DataMember(Name = "to")] public long To { get; set; }
         }
 
+        /// <summary>Reads the speech engine's JSON answer into lines with times.</summary>
         public static Transcript Parse(string json)
         {
             Output o;
@@ -142,8 +150,10 @@ namespace Kudutext.Core
     /// <summary>Subtitle files (SubRip .srt, WebVTT .vtt) and plain transcripts (.txt).</summary>
     public static class SubtitleFiles
     {
+        /// <summary>The kinds of file that can be written.</summary>
         public static readonly IReadOnlyList<string> Known = new[] { "srt", "vtt", "txt" };
 
+        /// <summary>A kind of file in words, for the options.</summary>
         public static string Describe(string format)
         {
             switch (format)
@@ -154,6 +164,7 @@ namespace Kudutext.Core
             }
         }
 
+        /// <summary>The text as a file of one kind.</summary>
         public static string Write(Transcript t, string format)
         {
             switch (format)
@@ -164,6 +175,7 @@ namespace Kudutext.Core
             }
         }
 
+        /// <summary>The text as SRT subtitles (most video players).</summary>
         public static string Srt(Transcript t)
         {
             var sb = new StringBuilder();
@@ -178,6 +190,7 @@ namespace Kudutext.Core
             return sb.ToString();
         }
 
+        /// <summary>The text as WebVTT subtitles (web pages).</summary>
         public static string Vtt(Transcript t)
         {
             var sb = new StringBuilder("WEBVTT\n\n");
